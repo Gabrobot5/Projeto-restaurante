@@ -1,6 +1,31 @@
 import streamlit as st
 import os
+import json
 import streamlit.components.v1 as components
+
+# =============== CARREGAR PRATOS DO JSON (se existir) ===============
+ARQUIVO_PRATOS = "pratos.json"
+if os.path.exists(ARQUIVO_PRATOS):
+    try:
+        with open(ARQUIVO_PRATOS, "r", encoding="utf-8") as f:
+            pratos_carregados = json.load(f)
+        pratos = pratos_carregados
+    except:
+        st.warning("Erro ao carregar pratos.json, usando lista padrão.")
+        pratos = []  
+else:
+    # Lista padrão (seus pratos iniciais)
+    pratos = [
+        {"nome": "Burger Classic", "preco": 18.90, "cat": "hamburgers", "img": "burger-classic.jpg"},
+        {"nome": "Burger Bacon", "preco": 22.90, "cat": "hamburgers", "img": "burger-bacon.jpg"},
+        {"nome": "Double Cheese", "preco": 26.90, "cat": "hamburgers", "img": "cheese-duplo.jpg"},
+        {"nome": "Refrigerante", "preco": 8.90, "cat": "bebidas", "img": "refri.jpg"},
+        {"nome": "Suco Natural", "preco": 12.90, "cat": "bebidas", "img": "suco.jpg"},
+        {"nome": "Batata Frita", "preco": 12.90, "cat": "acompanhamentos", "img": "batata-frita.jpg"},
+        {"nome": "Onion Rings", "preco": 15.90, "cat": "acompanhamentos", "img": "onion-rings.jpg"},
+        {"nome": "Milk Shake", "preco": 16.90, "cat": "sobremesas", "img": "milkshake.jpg"},
+        {"nome": "Brownie", "preco": 14.90, "cat": "sobremesas", "img": "brownie.jpg"},
+    ]
 
 # =============== CONFIGURAÇÃO ===============
 st.set_page_config(page_title="Burger Express", layout="centered")
@@ -69,7 +94,9 @@ st.markdown("""
     
     .footer {background:var(--dark);color:var(--light);padding:50px 0 20px;}
     .footer .container {max-width:1200px;margin:0 auto;padding:0 20px;}
-    .footer-content {display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:40px;}
+    .footer-content {display:grid;grid-template-columns:repeat(auto-fit,minmax(250
+
+px,1fr));gap:40px;}
     .footer-section h3 {color:var(--accent);margin-bottom:20px;font-size:1.4rem;}
     .footer-section p {margin:8px 0;opacity:0.9;}
     .social-links {display:flex;gap:15px;flex-wrap:wrap;}
@@ -79,41 +106,23 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =============== DADOS INICIAIS ===============
+# =============== ESTADO DA SESSÃO ===============
 if "carrinho" not in st.session_state:
     st.session_state.carrinho = {}
 if "categoria_atual" not in st.session_state:
     st.session_state.categoria_atual = "hamburgers"
-# flag para reset seguro de inputs (usada para setar valores ANTES dos widgets serem criados)
 if "to_reset" not in st.session_state:
     st.session_state.to_reset = False
 
-pratos = [
-    {"nome": "Burger Classic", "preco": 18.90, "cat": "hamburgers", "img": "burger-classic.jpg"},
-    {"nome": "Burger Bacon", "preco": 22.90, "cat": "hamburgers", "img": "burger-bacon.jpg"},
-    {"nome": "Double Cheese", "preco": 26.90, "cat": "hamburgers", "img": "cheese-duplo.jpg"},
-    {"nome": "Refrigerante", "preco": 8.90, "cat": "bebidas", "img": "refri.jpg"},
-    {"nome": "Suco Natural", "preco": 12.90, "cat": "bebidas", "img": "suco.jpg"},
-    {"nome": "Batata Frita", "preco": 12.90, "cat": "acompanhamentos", "img": "batata-frita.jpg"},
-    {"nome": "Onion Rings", "preco": 15.90, "cat": "acompanhamentos", "img": "onion-rings.jpg"},
-    {"nome": "Milk Shake", "preco": 16.90, "cat": "sobremesas", "img": "milkshake.jpg"},
-    {"nome": "Brownie", "preco": 14.90, "cat": "sobremesas", "img": "brownie.jpg"},
-]
-
-# Se um reset foi solicitado na execução anterior, zere os number_input antes de criar widgets
+# Reset seguro dos number_inputs
 if st.session_state.to_reset:
     for p in pratos:
         q_key = f"qtd_{p['nome']}"
-        # só seta se não existir ainda (ou seta de qualquer forma: estamos antes da criação dos widgets)
         st.session_state[q_key] = 0
-    st.session_state.to_reset = False  # limpa a flag
+    st.session_state.to_reset = False
 
-# =============== Função para atualizar o carrinho (usada por on_change) ===============
+# =============== FUNÇÃO ATUALIZAR CARRINHO ===============
 def atualizar_carrinho():
-    """
-    Lê todos os number_input (qtd_*) do session_state e reconstrói st.session_state.carrinho.
-    Chamado via on_change nos number_input para manter tudo sincronizado.
-    """
     novo = {}
     for p in pratos:
         key = f"qtd_{p['nome']}"
@@ -170,11 +179,10 @@ for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]
     caminho = os.path.join("images", prato["img"])
     
     st.markdown('<div class="product-card">', unsafe_allow_html=True)
-    # tenta exibir a imagem; se não existir, exibe placeholder
     try:
         st.image(caminho, use_container_width=True)
     except Exception:
-        st.image("https://via.placeholder.com/400x240.png?text=Imagem", use_container_width=True)
+        st.image("https://via.placeholder.com/400x240.png?text=Imagem+Indisponível", use_container_width=True)
     
     st.markdown(f"""
     <div class="product-info">
@@ -185,9 +193,7 @@ for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]
     </div>
     """, unsafe_allow_html=True)
     
-    # number_input com on_change que atualiza o carrinho
     q_key = f"qtd_{prato['nome']}"
-    # value=st.session_state.get(q_key, 0) para controlar visual; on_change atualiza st.session_state.carrinho
     st.number_input(
         "",
         min_value=0,
@@ -237,15 +243,13 @@ st.markdown("""
 </section>
 """, unsafe_allow_html=True)
 
-# =============== CARRINHO FINAL  ===============
+# =============== CARRINHO FINAL ===============
 if st.session_state.carrinho:
-    # Calcula total
     total = sum(
         qtd * next(p["preco"] for p in pratos if p["nome"] == nome)
         for nome, qtd in st.session_state.carrinho.items()
     )
 
-    # Monta itens_html
     itens_html = ""
     for nome, qtd in st.session_state.carrinho.items():
         preco = next(p["preco"] for p in pratos if p["nome"] == nome)
@@ -282,33 +286,84 @@ if st.session_state.carrinho:
     </div>
     """
 
-    # ALTURA DINÂMICA 
     height = 350 + (len(st.session_state.carrinho) * 110)
     components.html(cart_html, height=height, scrolling=False)
 
-    # BOTÕES (dentro do bloco do carrinho)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         c1, c2 = st.columns(2)
-
         with c1:
             if st.button("Finalizar Pedido", type="primary", use_container_width=True, key="finalizar"):
                 st.balloons()
                 st.success("Pedido enviado com sucesso! Entrega em 30–40 minutos.")
-                # limpa carrinho e agenda reset visual dos inputs (flag)
                 st.session_state.carrinho.clear()
                 st.session_state.to_reset = True
                 st.rerun()
-
         with c2:
             if st.button("Limpar Carrinho", use_container_width=True, key="limpar"):
-                # limpa o dicionário do carrinho
                 st.session_state.carrinho.clear()
-                # marca flag para resetar os number_input ANTES da próxima criação dos widgets
                 st.session_state.to_reset = True
-                # atualiza a página agora
                 st.rerun()
 
+# =============== ÁREA ADMINISTRATIVA ===============
+st.markdown("---")
+st.markdown("### Área Administrativa - Cadastro de Pratos")
+
+senha = st.text_input("Senha de administrador", type="password", key="admin_pass")
+SENHA_ADMIN = "burger123"  # Altere se quiser
+
+if senha == SENHA_ADMIN:
+    st.success("Acesso liberado!")
+
+    with st.form("cadastro_prato_form"):
+        st.markdown("#### Cadastrar Novo Prato")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            nome = st.text_input("Nome do prato*", placeholder="Ex: Combo Especial")
+            preco = st.number_input("Preço (R$)*", min_value=0.5, step=0.5, format="%.2f")
+            categoria = st.selectbox("Categoria*", options=["hamburgers", "bebidas", "acompanhamentos", "sobremesas"],
+                                   format_func=lambda x: {"hamburgers": "Hambúrgueres", "bebidas": "Bebidas",
+                                                        "acompanhamentos": "Acompanhamentos", "sobremesas": "Sobremesas"}[x])
+
+        with col2:
+            imagem = st.file_uploader("Imagem do prato (JPG/PNG)*", type=["jpg", "jpeg", "png"])
+
+        enviado = st.form_submit_button("Cadastrar Prato", type="primary")
+
+        if enviado:
+            if not nome.strip() or preco <= 0 or not imagem:
+                st.error("Preencha todos os campos obrigatórios!")
+            else:
+                os.makedirs("images", exist_ok=True)
+                extensao = imagem.name.split(".")[-1]
+                nome_arquivo = f"{nome.strip().replace(' ', '_').lower()}.{extensao}"
+                caminho = os.path.join("images", nome_arquivo)
+
+                with open(caminho, "wb") as f:
+                    f.write(imagem.getbuffer())
+
+                novo_prato = {
+                    "nome": nome.strip(),
+                    "preco": float(preco),
+                    "cat": categoria,
+                    "img": nome_arquivo
+                }
+                pratos.append(novo_prato)
+
+                # Salva no JSON
+                with open(ARQUIVO_PRATOS, "w", encoding="utf-8") as f:
+                    json.dump(pratos, f, ensure_ascii=False, indent=2)
+
+                st.success(f"Prato '{nome}' cadastrado com sucesso!")
+                st.balloons()
+                st.rerun()
+
+else:
+    if senha and senha != SENHA_ADMIN:
+        st.error("Senha incorreta")
+    st.info("Digite a senha para cadastrar novos pratos.")
+
 # =============== FOOTER ===============
 st.markdown("""
 <footer class="footer full-width-section" id="contato">
@@ -320,43 +375,9 @@ st.markdown("""
             </div>
             <div class="footer-section">
                 <h3>Contato</h3>
-                <p><i class="fas fa-phone"></i> (61) 9999-9999</p>
-                <p><i class="fas fa-envelope"></i> contato@burgerexpress.com</p>
-                <p><i class="fas fa-map-marker-alt"></i> QNA 45 - Taguatinga Norte, Brasília-DF</p>
-            </div>
-            <div class="footer-section">
-                <h3>Redes Sociais</h3>
-                <div class="social-links">
-                    <a href="#"><i class="fab fa-instagram"></i> Instagram</a>
-                    <a href="#"><i class="fab fa-facebook"></i> Facebook</a>
-                    <a href="#"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-                </div>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>© 2025 Burger Express. Todos os direitos reservados.</p>
-        </div>
-    </div>
-</footer>
-""", unsafe_allow_html=True)
-
-
-
-
-# =============== FOOTER ===============
-st.markdown("""
-<footer class="footer full-width-section" id="contato">
-    <div class="container">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h3>Burger Express</h3>
-                <p>O melhor fast food da cidade! Há mais de 10 anos servindo qualidade e sabor incomparáveis.</p>
-            </div>
-            <div class="footer-section">
-                <h3>Contato</h3>
-                <p><i class="fas fa-phone"></i> (61) 9999-9999</p>
-                <p><i class="fas fa-envelope"></i> contato@burgerexpress.com</p>
-                <p><i class="fas fa-map-marker-alt"></i> QNA 45 - Taguatinga Norte, Brasília-DF</p>
+                <p> (61) 9999-9999</p>
+                <p> contato@burgerexpress.com</p>
+                <p> QNA 45 - Taguatinga Norte, Brasília-DF</p>
             </div>
             <div class="footer-section">
                 <h3>Redes Sociais</h3>
