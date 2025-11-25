@@ -1,0 +1,56 @@
+[
+  {
+    "nome": "Burger Classic",
+    "preco": 18.9,
+    "cat": "hamburgers",
+    "img": "burger-classic.jpg"
+  },
+  {
+    "nome": "Burger Bacon",
+    "preco": 22.9,
+    "cat": "hamburgers",
+    "img": "burger-bacon.jpg"
+  },
+  {
+    "nome": "Double Cheese",
+    "preco": 26.9,
+    "cat": "hamburgers",
+    "img": "cheese-duplo.jpg"
+  },
+  {
+    "nome": "Refrigerante",
+    "preco": 8.9,
+    "cat": "bebidas",
+    "img": "refri.jpg"
+  },
+  {
+    "nome": "Suco Natural",
+    "preco": 12.9,
+    "cat": "bebidas",
+    "img": "suco.jpg"
+  },
+  {
+    "nome": "Batata Frita",
+    "preco": 12.9,
+    "cat": "acompanhamentos",
+    "img": "batata-frita.jpg"
+  },
+  {
+    "nome": "Onion Rings",
+    "preco": 15.9,
+    "cat": "acompanhamentos",
+    "img": "onion-rings.jpg"
+  },
+  {
+    "nome": "Milk Shake",
+    "preco": 16.9,
+    "cat": "sobremesas",
+    "img": "milkshake.jpg"
+  },
+  {
+    "nome": "Brownie",
+    "preco": 14.9,
+    "cat": "sobremesas",
+    "img": "brownie.jpg"
+  }
+]
