@@ -1,8 +1,27 @@
-# app.py - VERSÃO FINAL 100% FUNCIONAL
+# app.py - VERSÃO FINAL 100% FUNCIONAL - SÓ REMOVE STREAMLIT CLOUD
 import streamlit as st
 import os
 import json
 import streamlit.components.v1 as components
+
+# =============== CONFIGURAÇÃO INICIAL ===============
+st.set_page_config(page_title="Burger Express", layout="centered")
+
+# =============== REMOVER SÓ CABEÇALHO STREAMLIT CLOUD ===============
+st.markdown("""
+<style>
+    /* Remove APENAS elementos do Streamlit Cloud, mantém SEU header/footer */
+    #MainMenu {visibility: hidden !important;}
+    [data-testid="collapsedControl"] {display: none !important;}
+    .stDeployButton {display: none !important;}
+    
+    /* Remove toolbar do Streamlit mas mantém SEU header */
+    [data-testid="stToolbar"] {display: none !important;}
+    
+    /* Ajusta o padding para compensar */
+    .block-container {padding-top: 2rem !important;}
+</style>
+""", unsafe_allow_html=True)
 
 # =============== CARREGA PRATOS SEM CACHE (ATUALIZA NA HORA) ===============
 def carregar_pratos():
@@ -34,12 +53,13 @@ def carregar_pratos():
 
 pratos = carregar_pratos()
 
-st.set_page_config(page_title="Burger Express", layout="centered")
-
 # =============== CSS ORIGINAL LINDO ===============
 st.markdown("""
 <style>
-    [data-testid="stHeader"], [data-testid="stToolbar"] {display: none !important;}
+    /* Remove APENAS header nativo do Streamlit, mantém SEU header */
+    [data-testid="stHeader"] {display: none !important;}
+    
+    /* SEU HEADER PERSONALIZADO - mantém intacto */
     .header {position: fixed;top:0;left:0;width:100%;z-index:999999;background:#fff;height:72px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
     .block-container {padding-top: 100px !important;}
     .full-width-section {width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;}
@@ -67,6 +87,8 @@ st.markdown("""
     .map {border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.1);}
     .info-item {background:white;padding:25px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);border:1px solid #f0f0f0;}
     .info-item h3 {color:#EA1D2C;margin-bottom:10px;}
+    
+    /* SEU FOOTER PERSONALIZADO - mantém intacto */
     .footer {background:linear-gradient(135deg,#2e2e2e,#1a1a1a);color:#fff;padding:60px 0 30px;position:relative;overflow:hidden;}
     .footer::before {content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#EA1D2C,#ff4757);}
     .footer-content {display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:50px;max-width:1200px;margin:0 auto;padding:0 20px;}
@@ -125,6 +147,7 @@ st.markdown(f"""
     </div>
 </header>
 """, unsafe_allow_html=True)
+
 
 # =============== HERO SECTION ===============
 st.markdown("""
