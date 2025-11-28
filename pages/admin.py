@@ -45,7 +45,61 @@ st.markdown(f"""
         color: white !important;
     }}
     
-    /* FILE UPLOADER - TEXTO PRETO ESPECÍFICO */
+    /* FORMULÁRIOS - TEXTO BRANCO */
+    .stForm * {{
+        color: white !important;
+    }}
+    
+    /* INPUTS - TEXTO PRETO */
+    .stForm input {{
+        color: #000000 !important;
+        background: white !important;
+    }}
+    
+    .stForm .stTextInput > div > div > input {{
+        color: #000000 !important;
+        background: white !important;
+    }}
+    
+    .stForm .stNumberInput > div > div > input {{
+        color: #000000 !important;
+        background: white !important;
+    }}
+    
+    /* RADIO BUTTONS - TEXTO BRANCO */
+    .stForm .stRadio * {{
+        color: white !important;
+    }}
+    
+    .stForm .stRadio > div {{
+        color: white !important;
+    }}
+    
+    .stForm .stRadio label {{
+        color: white !important;
+    }}
+    
+    .stForm .stRadio span {{
+        color: white !important;
+    }}
+    
+    .stForm div[role="radiogroup"] label {{
+        color: white !important;
+    }}
+    
+    .stForm div[role="radiogroup"] span {{
+        color: white !important;
+    }}
+    
+    /* FILE UPLOADER - LABEL BRANCO, CONTEÚDO PRETO */
+    .stForm .stFileUploader label {{
+        color: white !important;
+    }}
+    
+    .stForm .stFileUploader p {{
+        color: white !important;
+    }}
+    
     .stFileUploader * {{
         color: #000000 !important;
     }}
@@ -53,48 +107,11 @@ st.markdown(f"""
         color: #000000 !important;
         background: white !important;
     }}
-    .stFileUploader > div > div > div {{
-        color: #000000 !important;
-    }}
-    .stFileUploader > div > div > small {{
-        color: #000000 !important;
-    }}
-    div[data-testid="stFileUploader"] * {{
-        color: #000000 !important;
-    }}
-    div[data-testid="stFileUploader"] > div > div {{
-        color: #000000 !important;
-    }}
-    
-    /* SELECTBOX - TEXTO PRETO */
-    .stSelectbox * {{
-        color: #000000 !important;
-    }}
-    .stSelectbox > div > div {{
-        color: #000000 !important;
-        background: white !important;
-    }}
-    .stSelectbox > div > div > div {{
-        color: #000000 !important;
-    }}
-    div[data-testid="stSelectbox"] * {{
-        color: #000000 !important;
-    }}
     
     /* LABELS EM BRANCO */
     label {{
         color: white !important;
         font-weight: bold !important;
-    }}
-    
-    /* INPUTS */
-    .stTextInput > div > div > input {{
-        color: #000000 !important;
-        background: white !important;
-    }}
-    .stNumberInput > div > div > input {{
-        color: #000000 !important;
-        background: white !important;
     }}
     
     /* BOTÕES */
@@ -110,6 +127,7 @@ st.markdown(f"""
     }}
 </style>
 """, unsafe_allow_html=True)
+
 
 if "admin_logado" not in st.session_state:
     st.session_state.admin_logado = False
@@ -168,17 +186,26 @@ else:
         with col1:
             nome = st.text_input("Nome do Prato", placeholder="Ex: Burger Especial")
             preco = st.number_input("Preço (R$)", min_value=1.0, value=20.0, step=0.5, format="%.2f")
+        
         with col2:
-            categoria = st.selectbox(
-                "Categoria",
-                ["hamburgers", "bebidas", "acompanhamentos", "sobremesas"],
-                format_func=lambda x: {
-                    "hamburgers": "🍔 Hambúrgueres",
-                    "bebidas": "🥤 Bebidas", 
-                    "acompanhamentos": "🍟 Acompanhamentos",
-                    "sobremesas": "🍰 Sobremesas"
-                }[x]
+            # Substitua o selectbox por radio buttons
+            st.write("Categoria")
+            categoria_opcoes = {
+                "hamburgers": "🍔 Hambúrgueres",
+                "bebidas": "🥤 Bebidas", 
+                "acompanhamentos": "🍟 Acompanhamentos",
+                "sobremesas": "🍰 Sobremesas"
+            }
+            
+            categoria_selecionada = st.radio(
+                "Selecione a categoria:",
+                options=list(categoria_opcoes.keys()),
+                format_func=lambda x: categoria_opcoes[x],
+                label_visibility="collapsed",
+                horizontal=True
             )
+            categoria = categoria_selecionada
+            
             imagem = st.file_uploader("Imagem do Prato", type=["jpg", "jpeg", "png"])
         
         submitted = st.form_submit_button("✅ Cadastrar Prato", type="primary")
