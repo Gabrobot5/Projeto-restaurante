@@ -1,0 +1,47 @@
+{
+  "Burger Classic": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Burger Bacon": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Double Cheese": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Refrigerante": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Suco Natural": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Batata Frita": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Onion Rings": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Milk Shake": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  },
+  "Brownie": {
+    "quantidade": 10,
+    "minimo": 5,
+    "ativo": true
+  }
+}

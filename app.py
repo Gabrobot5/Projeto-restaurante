@@ -44,6 +44,52 @@ def carregar_pratos():
 
 pratos = carregar_pratos()
 
+# =============== FUNÇÕES DE ESTOQUE ===============
+def carregar_estoque():
+    if os.path.exists("estoque.json"):
+        try:
+            with open("estoque.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return {}
+    return {}
+
+def produto_disponivel(nome_prato):
+    estoque = carregar_estoque()
+    if nome_prato in estoque:
+        dados = estoque[nome_prato]
+        return dados['ativo'] and dados['quantidade'] > 0
+    return True  # Se não tiver no estoque, assume disponível
+
+# =============== FUNÇÕES DE INGREDIENTES ===============
+def carregar_ingredientes():
+    if os.path.exists("ingredientes.json"):
+        try:
+            with open("ingredientes.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+def verificar_disponibilidade_prato(prato):
+    """Verifica se o prato pode ser feito com os ingredientes disponíveis"""
+    ingredientes = carregar_ingredientes()
+    
+    for ing_prato in prato.get('ingredientes', []):
+        ingrediente = next((i for i in ingredientes if i['nome'] == ing_prato['nome']), None)
+        if not ingrediente or ingrediente['estoque'] < ing_prato['quantidade']:
+            return False, ing_prato['nome']
+    return True, None
+
+def produto_disponivel(nome_prato):
+    """Verifica se um prato está disponível"""
+    pratos = carregar_pratos()
+    prato = next((p for p in pratos if p["nome"] == nome_prato), None)
+    if prato:
+        disponivel, _ = verificar_disponibilidade_prato(prato)
+        return disponivel
+    return False
+
 # =============== CSS ORIGINAL ===============
 st.markdown("""
 <style>
@@ -153,10 +199,17 @@ for i, (key, nome) in enumerate(categorias):
 
 st.markdown('<div class="products-grid">', unsafe_allow_html=True)
 
-# Mostra produtos da categoria atual
+# No loop que mostra os produtos, substitua por:
 for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]:
+    disponivel, ingrediente_faltante = verificar_disponibilidade_prato(prato)
+    
     with st.container():
-        st.markdown('<div class="product-card">', unsafe_allow_html=True)
+        # Card do produto
+        if not disponivel:
+            st.markdown('<div class="product-card" style="opacity:0.6;position:relative;">', unsafe_allow_html=True)
+            st.markdown(f'<div style="position:absolute;top:10px;right:10px;background:#EA1D2C;color:white;padding:4px 8px;border-radius:4px;font-size:0.8rem;z-index:10;">SEM {ingrediente_faltante.upper()}</div>', unsafe_allow_html=True)
+        else:
+            st.markdown('<div class="product-card">', unsafe_allow_html=True)
         
         # Imagem
         caminho_imagem = os.path.join("images", prato["img"])
@@ -166,37 +219,36 @@ for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]
             st.image("https://via.placeholder.com/400x240/EA1D2C/white?text=Imagem+Indisponível", 
                     use_container_width=True)
         
-        # Informações
-        st.markdown(f"""
-        <div class="product-info">
-            <h3>{prato['nome']}</h3>
-            <span class="price">R$ {prato['preco']:.2f}</span>
-        </div>
-        """, unsafe_allow_html=True)
+        # Informações com ingredientes
+        with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}", expanded=False):
+            st.write("**Ingredientes:**")
+            for ing in prato.get('ingredientes', []):
+                st.write(f"• {ing['nome']}")
         
-        # Controle de quantidade - ABORDAGEM SIMPLES E FUNCIONAL
+        # Controle de quantidade
         quantidade_atual = st.session_state.carrinho.get(prato["nome"], 0)
         
         col1, col2, col3 = st.columns([1, 2, 1])
         
         with col1:
-            if st.button("➖", key=f"menos_{prato['nome']}", use_container_width=True):
+            if st.button("➖", key=f"menos_{prato['nome']}", use_container_width=True, disabled=not disponivel):
                 nova_quantidade = max(0, quantidade_atual - 1)
                 atualizar_item_carrinho(prato["nome"], nova_quantidade)
                 st.rerun()
         
         with col2:
-            st.markdown(f"<div style='text-align:center;padding:8px;background:#f5f5f5;border-radius:4px;font-weight:bold;'>{quantidade_atual}</div>", unsafe_allow_html=True)
+            if disponivel:
+                st.markdown(f"<div style='text-align:center;padding:8px;background:#f5f5f5;border-radius:4px;font-weight:bold;'>{quantidade_atual}</div>", unsafe_allow_html=True)
+            else:
+                st.markdown(f"<div style='text-align:center;padding:8px;background:#ffcccc;border-radius:4px;font-weight:bold;color:#cc0000;'>INDISPONÍVEL</div>", unsafe_allow_html=True)
         
         with col3:
-            if st.button("➕", key=f"mais_{prato['nome']}", use_container_width=True):
+            if st.button("➕", key=f"mais_{prato['nome']}", use_container_width=True, disabled=not disponivel):
                 nova_quantidade = quantidade_atual + 1
                 atualizar_item_carrinho(prato["nome"], nova_quantidade)
                 st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('</div></div></section>', unsafe_allow_html=True)
 
 # =============== CARRINHO COM ID ===============
 if st.session_state.carrinho:
