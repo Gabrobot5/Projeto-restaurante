@@ -1020,7 +1020,7 @@ else:
                     st.error("❌ Digite o preço do prato")
                 elif not imagem:
                     st.error("❌ Selecione uma imagem")
-                elif not ingredientes_seleconalizados:
+                elif not ingredientes_selecionados:
                     st.error("❌ Selecione pelo menos um ingrediente")
                 else:
                     nomes_existentes = [p["nome"].lower() for p in pratos]
