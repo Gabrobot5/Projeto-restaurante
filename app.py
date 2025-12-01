@@ -1,8 +1,9 @@
-# app.py - VERSÃO ORIGINAL FUNCIONAL
+# app.py - VERSÃO COMPLETA COM CHECKOUT COMPLETO
 import streamlit as st
 import os
 import json
 import streamlit.components.v1 as components
+from datetime import datetime
 
 # =============== CONFIGURAÇÃO INICIAL ===============
 st.set_page_config(page_title="Burger Express", layout="centered")
@@ -18,7 +19,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# =============== CARREGA PRATOS ===============
+# =============== FUNÇÕES DE DADOS ===============
 def carregar_pratos():
     if os.path.exists("pratos.json"):
         try:
@@ -28,15 +29,54 @@ def carregar_pratos():
             return []
     else:
         pratos_padrao = [
-            {"nome": "Burger Classic", "preco": 18.90, "cat": "hamburgers", "img": "burger-classic.jpg"},
-            {"nome": "Burger Bacon", "preco": 22.90, "cat": "hamburgers", "img": "burger-bacon.jpg"},
-            {"nome": "Double Cheese", "preco": 26.90, "cat": "hamburgers", "img": "cheese-duplo.jpg"},
-            {"nome": "Refrigerante", "preco": 8.90, "cat": "bebidas", "img": "refri.jpg"},
-            {"nome": "Suco Natural", "preco": 12.90, "cat": "bebidas", "img": "suco.jpg"},
-            {"nome": "Batata Frita", "preco": 12.90, "cat": "acompanhamentos", "img": "batata-frita.jpg"},
-            {"nome": "Onion Rings", "preco": 15.90, "cat": "acompanhamentos", "img": "onion-rings.jpg"},
-            {"nome": "Milk Shake", "preco": 16.90, "cat": "sobremesas", "img": "milkshake.jpg"},
-            {"nome": "Brownie", "preco": 14.90, "cat": "sobremesas", "img": "brownie.jpg"},
+            {
+                "nome": "Burger Classic", 
+                "preco": 18.90, 
+                "cat": "hamburgers", 
+                "img": "burger-classic.jpg",
+                "ingredientes": [
+                    {"nome": "Pão de Hambúrguer", "quantidade": 1},
+                    {"nome": "Carne Bovina 180g", "quantidade": 1},
+                    {"nome": "Queijo Cheddar", "quantidade": 1},
+                    {"nome": "Alface", "quantidade": 1},
+                    {"nome": "Tomate", "quantidade": 2},
+                    {"nome": "Molho Especial", "quantidade": 1}
+                ]
+            },
+            {
+                "nome": "Burger Bacon", 
+                "preco": 22.90, 
+                "cat": "hamburgers", 
+                "img": "burger-bacon.jpg",
+                "ingredientes": [
+                    {"nome": "Pão Brioche", "quantidade": 1},
+                    {"nome": "Carne Bovina 180g", "quantidade": 1},
+                    {"nome": "Queijo Cheddar", "quantidade": 2},
+                    {"nome": "Bacon", "quantidade": 3},
+                    {"nome": "Alface", "quantidade": 1},
+                    {"nome": "Molho Especial", "quantidade": 1}
+                ]
+            },
+            {
+                "nome": "Double Cheese", 
+                "preco": 26.90, 
+                "cat": "hamburgers", 
+                "img": "cheese-duplo.jpg",
+                "ingredientes": [
+                    {"nome": "Pão de Hambúrguer", "quantidade": 1},
+                    {"nome": "Carne Bovina 180g", "quantidade": 2},
+                    {"nome": "Queijo Cheddar", "quantidade": 2},
+                    {"nome": "Queijo Mussarela", "quantidade": 2},
+                    {"nome": "Cebola Roxa", "quantidade": 3},
+                    {"nome": "Molho Especial", "quantidade": 1}
+                ]
+            },
+            {"nome": "Refrigerante", "preco": 8.90, "cat": "bebidas", "img": "refri.jpg", "ingredientes": []},
+            {"nome": "Suco Natural", "preco": 12.90, "cat": "bebidas", "img": "suco.jpg", "ingredientes": []},
+            {"nome": "Batata Frita", "preco": 12.90, "cat": "acompanhamentos", "img": "batata-frita.jpg", "ingredientes": []},
+            {"nome": "Onion Rings", "preco": 15.90, "cat": "acompanhamentos", "img": "onion-rings.jpg", "ingredientes": []},
+            {"nome": "Milk Shake", "preco": 16.90, "cat": "sobremesas", "img": "milkshake.jpg", "ingredientes": []},
+            {"nome": "Brownie", "preco": 14.90, "cat": "sobremesas", "img": "brownie.jpg", "ingredientes": []},
         ]
         with open("pratos.json", "w", encoding="utf-8") as f:
             json.dump(pratos_padrao, f, ensure_ascii=False, indent=2)
@@ -44,22 +84,56 @@ def carregar_pratos():
 
 pratos = carregar_pratos()
 
-# =============== FUNÇÕES DE ESTOQUE ===============
-def carregar_estoque():
-    if os.path.exists("estoque.json"):
+# =============== FUNÇÕES DE PEDIDOS ===============
+def salvar_pedido_completo(pedido_completo):
+    """Salva o pedido completo com todas as informações do checkout"""
+    pedidos = carregar_pedidos()
+    
+    # Converter itens para formato do pedido
+    itens_pedido = []
+    for nome, qtd in pedido_completo["itens"].items():
+        preco_prato = next((p["preco"] for p in pratos if p["nome"] == nome), 0)
+        itens_pedido.append({
+            "nome": nome, 
+            "quantidade": qtd, 
+            "preco": preco_prato
+        })
+    
+    novo_pedido = {
+        "id": len(pedidos) + 1,
+        "cliente": "Cliente App",
+        "itens": itens_pedido,
+        "subtotal": pedido_completo["subtotal"],
+        "taxa_entrega": pedido_completo["taxa_entrega"],
+        "desconto": pedido_completo["desconto"],
+        "total": pedido_completo["total"],
+        "forma_entrega": pedido_completo["forma_entrega"],
+        "forma_pagamento": pedido_completo["forma_pagamento"],
+        "cupom": pedido_completo["cupom"],
+        "endereco": pedido_completo["endereco"],
+        "troco_para": pedido_completo["troco_para"],
+        "status": "recebido",
+        "data_hora": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "tempo_preparo_estimado": 40 if pedido_completo["forma_entrega"] == "delivery" else 25
+    }
+    
+    pedidos.append(novo_pedido)
+    
+    # Salva no arquivo
+    with open("pedidos.json", "w", encoding="utf-8") as f:
+        json.dump(pedidos, f, ensure_ascii=False, indent=2)
+    
+    return novo_pedido
+
+def carregar_pedidos():
+    """Carrega os pedidos existentes"""
+    if os.path.exists("pedidos.json"):
         try:
-            with open("estoque.json", "r", encoding="utf-8") as f:
+            with open("pedidos.json", "r", encoding="utf-8") as f:
                 return json.load(f)
         except:
-            return {}
-    return {}
-
-def produto_disponivel(nome_prato):
-    estoque = carregar_estoque()
-    if nome_prato in estoque:
-        dados = estoque[nome_prato]
-        return dados['ativo'] and dados['quantidade'] > 0
-    return True  # Se não tiver no estoque, assume disponível
+            return []
+    return []
 
 # =============== FUNÇÕES DE INGREDIENTES ===============
 def carregar_ingredientes():
@@ -83,7 +157,6 @@ def verificar_disponibilidade_prato(prato):
 
 def produto_disponivel(nome_prato):
     """Verifica se um prato está disponível"""
-    pratos = carregar_pratos()
     prato = next((p for p in pratos if p["nome"] == nome_prato), None)
     if prato:
         disponivel, _ = verificar_disponibilidade_prato(prato)
@@ -126,6 +199,18 @@ if "carrinho" not in st.session_state:
 if "categoria_atual" not in st.session_state: 
     st.session_state.categoria_atual = "hamburgers"
 
+# Inicializar dados do checkout
+if "checkout_data" not in st.session_state:
+    st.session_state.checkout_data = {
+        "forma_entrega": "retirada",
+        "forma_pagamento": "dinheiro",
+        "cupom": "",
+        "desconto": 0,
+        "taxa_entrega": 0,
+        "endereco": "",
+        "troco_para": ""
+    }
+
 # Função para adicionar/remover itens do carrinho
 def atualizar_item_carrinho(nome_prato, quantidade):
     if quantidade > 0:
@@ -136,6 +221,15 @@ def atualizar_item_carrinho(nome_prato, quantidade):
 
 def limpar_carrinho():
     st.session_state.carrinho = {}
+    st.session_state.checkout_data = {
+        "forma_entrega": "retirada",
+        "forma_pagamento": "dinheiro",
+        "cupom": "",
+        "desconto": 0,
+        "taxa_entrega": 0,
+        "endereco": "",
+        "troco_para": ""
+    }
 
 # =============== HEADER COM CARRINHO CLICÁVEL ===============
 st.markdown(f"""
@@ -199,7 +293,7 @@ for i, (key, nome) in enumerate(categorias):
 
 st.markdown('<div class="products-grid">', unsafe_allow_html=True)
 
-# No loop que mostra os produtos, substitua por:
+# Loop que mostra os produtos
 for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]:
     disponivel, ingrediente_faltante = verificar_disponibilidade_prato(prato)
     
@@ -222,8 +316,11 @@ for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]
         # Informações com ingredientes
         with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}", expanded=False):
             st.write("**Ingredientes:**")
-            for ing in prato.get('ingredientes', []):
-                st.write(f"• {ing['nome']}")
+            if prato.get('ingredientes'):
+                for ing in prato['ingredientes']:
+                    st.write(f"• {ing['nome']}")
+            else:
+                st.write("• Ingredientes padrão")
         
         # Controle de quantidade
         quantidade_atual = st.session_state.carrinho.get(prato["nome"], 0)
@@ -250,7 +347,10 @@ for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]
         
         st.markdown('</div>', unsafe_allow_html=True)
 
-# =============== CARRINHO COM ID ===============
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown('</section>', unsafe_allow_html=True)
+
+# =============== CARRINHO COM CHECKOUT COMPLETO ===============
 if st.session_state.carrinho:
     total = 0
     itens_detalhados = []
@@ -259,53 +359,237 @@ if st.session_state.carrinho:
         preco = next((p["preco"] for p in pratos if p["nome"] == nome), 0)
         subtotal = qtd * preco
         total += subtotal
-        itens_detalhados.append((nome, qtd, subtotal))
+        itens_detalhados.append({"nome": nome, "quantidade": qtd, "preco": preco, "subtotal": subtotal})
     
-    # Exibe o carrinho COM ID para o link
+    # Exibe o carrinho
     st.markdown("""
     <div id="carrinho" style='background:white;padding:30px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);margin:40px 0;'>
         <h2 style='color:#EA1D2C;text-align:center;margin-bottom:25px;'>🛒 Seu Pedido</h2>
     """, unsafe_allow_html=True)
     
-    for nome, qtd, subtotal in itens_detalhados:
+    for item in itens_detalhados:
         st.markdown(f"""
         <div style='display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0;'>
             <div>
-                <strong>{nome}</strong>
+                <strong>{item['nome']}</strong>
                 <br>
-                <small>Quantidade: {qtd}</small>
+                <small>Quantidade: {item['quantidade']}</small>
             </div>
-            <strong style='color:#EA1D2C;'>R$ {subtotal:.2f}</strong>
+            <strong style='color:#EA1D2C;'>R$ {item['subtotal']:.2f}</strong>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown(f"""
         <div style='display:flex;justify-content:space-between;align-items:center;padding:20px 0;margin-top:15px;border-top:2px solid #EA1D2C;font-size:1.4rem;font-weight:bold;'>
-            <span>TOTAL:</span>
+            <span>SUBTOTAL:</span>
             <span style='color:#EA1D2C;'>R$ {total:.2f}</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
     
-    # Botões de ação
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
+    # =============== CHECKOUT EXPANDIBLE ===============
+    with st.expander("💰 **Finalizar Pedido - Checkout**", expanded=False):
+        
+        # COLUNAS PRINCIPAIS
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("🚚 Entrega")
+            
+            # Forma de Entrega
+            forma_entrega = st.radio(
+                "Escolha a forma de entrega:",
+                ["retirada", "delivery"],
+                format_func=lambda x: "🏪 Retirada no Local" if x == "retirada" else "🚚 Delivery",
+                key="forma_entrega"
+            )
+            
+            st.session_state.checkout_data["forma_entrega"] = forma_entrega
+            
+            # Se for delivery, mostrar campo de endereço e taxa
+            if forma_entrega == "delivery":
+                st.session_state.checkout_data["taxa_entrega"] = 5.00
+                endereco = st.text_input("📮 Endereço de Entrega:", placeholder="Digite seu endereço completo", key="endereco_input")
+                st.session_state.checkout_data["endereco"] = endereco
+                st.info("📍 Taxa de entrega: R$ 5,00")
+            else:
+                st.session_state.checkout_data["taxa_entrega"] = 0
+                st.session_state.checkout_data["endereco"] = ""
+                st.success("✅ Retirada gratuita no balcão")
+        
+        with col2:
+            st.subheader("💳 Pagamento")
+            
+            # Forma de Pagamento
+            forma_pagamento = st.radio(
+                "Forma de pagamento:",
+                ["dinheiro", "cartao", "pix"],
+                format_func=lambda x: {
+                    "dinheiro": "💵 Dinheiro",
+                    "cartao": "💳 Cartão", 
+                    "pix": "📱 PIX"
+                }[x],
+                key="forma_pagamento"
+            )
+            
+            st.session_state.checkout_data["forma_pagamento"] = forma_pagamento
+            
+            # Se for dinheiro, pedir troco
+            if forma_pagamento == "dinheiro":
+                troco_para = st.text_input("💰 Troco para quanto?", placeholder="Ex: 50,00", key="troco_input")
+                st.session_state.checkout_data["troco_para"] = troco_para
+            else:
+                st.session_state.checkout_data["troco_para"] = ""
+        
+        # CUPOM DE DESCONTO
+        st.subheader("🎫 Cupom de Desconto")
+        cupom_col1, cupom_col2 = st.columns([3, 1])
+        
+        with cupom_col1:
+            cupom = st.text_input("Digite seu cupom:", placeholder="Ex: BURGER10", key="cupom_input")
+        
+        with cupom_col2:
+            st.write("")  # Espaço
+            st.write("")  # Espaço
+            if st.button("Aplicar Cupom", use_container_width=True):
+                cupom = cupom.upper().strip()
+                # Cupons válidos
+                cupons_validos = {
+                    "BURGER10": 0.10,  # 10% de desconto
+                    "BURGER20": 0.20,  # 20% de desconto
+                    "PRIMEIRACOMPRA": 0.15,  # 15% de desconto
+                    "BURGEREXPRESS": 0.05  # 5% de desconto
+                }
+                
+                if cupom in cupons_validos:
+                    desconto = total * cupons_validos[cupom]
+                    st.session_state.checkout_data["desconto"] = desconto
+                    st.session_state.checkout_data["cupom"] = cupom
+                    st.success(f"🎉 Cupom aplicado! Desconto: R$ {desconto:.2f}")
+                else:
+                    st.session_state.checkout_data["desconto"] = 0
+                    st.session_state.checkout_data["cupom"] = ""
+                    st.error("❌ Cupom inválido ou expirado")
+        
+        # =============== RESUMO FINAL ===============
+        st.markdown("---")
+        st.subheader("📋 Resumo do Pedido")
+        
+        # Cálculos finais
+        subtotal = total
+        taxa_entrega = st.session_state.checkout_data["taxa_entrega"]
+        desconto = st.session_state.checkout_data["desconto"]
+        total_final = subtotal + taxa_entrega - desconto
+        
+        # Tabela de resumo
+        resumo_data = {
+            "Descrição": ["Subtotal", "Taxa de Entrega", "Desconto", "**TOTAL FINAL**"],
+            "Valor": [
+                f"R$ {subtotal:.2f}",
+                f"R$ {taxa_entrega:.2f}" if taxa_entrega > 0 else "Grátis",
+                f"-R$ {desconto:.2f}" if desconto > 0 else "R$ 0,00",
+                f"**R$ {total_final:.2f}**"
+            ]
+        }
+        
+        # Exibir resumo
+        for i, (desc, valor) in enumerate(zip(resumo_data["Descrição"], resumo_data["Valor"])):
+            col_desc, col_valor = st.columns([3, 1])
+            with col_desc:
+                if i == 3:  # Total final
+                    st.markdown(f"**{desc}**")
+                else:
+                    st.write(desc)
+            with col_valor:
+                if i == 3:  # Total final
+                    st.markdown(f"<h3 style='color:#EA1D2C; margin:0;'>{valor}</h3>", unsafe_allow_html=True)
+                else:
+                    st.write(valor)
+        
+        # Informações adicionais
+        if st.session_state.checkout_data["forma_pagamento"] == "pix":
+            st.info("📱 **PIX**: Chave: (61) 99999-9999 - Envie o comprovante para confirmar")
+        
+        # BOTÃO FINALIZAR PEDIDO
+        st.markdown("---")
         col_confirm, col_clear = st.columns(2)
+        
         with col_confirm:
-            if st.button("✅ Finalizar Pedido", type="primary", use_container_width=True):
-                st.balloons()
-                st.success("🎉 Pedido enviado com sucesso! Tempo de entrega: 30-40 minutos")
-                limpar_carrinho()
-                st.rerun()
+            if st.button("✅ **Finalizar Pedido**", type="primary", use_container_width=True):
+                # Validar dados obrigatórios
+                if (st.session_state.checkout_data["forma_entrega"] == "delivery" and 
+                    not st.session_state.checkout_data["endereco"].strip()):
+                    st.error("❌ Por favor, informe o endereço de entrega")
+                else:
+                    # Salvar pedido com todas as informações
+                    pedido_completo = {
+                        "itens": st.session_state.carrinho.copy(),
+                        "subtotal": subtotal,
+                        "taxa_entrega": taxa_entrega,
+                        "desconto": desconto,
+                        "total": total_final,
+                        "forma_entrega": st.session_state.checkout_data["forma_entrega"],
+                        "forma_pagamento": st.session_state.checkout_data["forma_pagamento"],
+                        "cupom": st.session_state.checkout_data["cupom"],
+                        "endereco": st.session_state.checkout_data["endereco"],
+                        "troco_para": st.session_state.checkout_data["troco_para"]
+                    }
+                    
+                    # Salvar pedido
+                    pedido_salvo = salvar_pedido_completo(pedido_completo)
+                    
+                    # Feedback visual
+                    st.balloons()
+                    st.success(f"""
+                    🎉 **Pedido #{pedido_salvo['id']} Confirmado!**
+                    
+                    **Tempo estimado:** {'30-40 minutos' if forma_entrega == 'delivery' else '15-20 minutos'}
+                    **Forma de pagamento:** {forma_pagamento.upper()}
+                    **Total:** R$ {total_final:.2f}
+                    """)
+                    
+                    # Limpar carrinho e dados do checkout
+                    limpar_carrinho()
+                    st.rerun()
+        
         with col_clear:
-            if st.button("🗑️ Limpar Tudo", use_container_width=True):
+            if st.button("🗑️ **Limpar Tudo**", use_container_width=True):
                 limpar_carrinho()
                 st.rerun()
 
-# =============== SOBRE NÓS – SEM QUEBRAS ===============
-st.markdown("""<section id="sobre" class="about full-width-section"><div style="max-width:1400px;margin:0 auto;padding:100px 40px;"><h2 class="section-title">Sobre Nós</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;margin-bottom:100px;"><div style="font-size:1.2rem;line-height:1.8;color:#333;"><p style="margin-bottom:25px;">Há mais de 10 anos servindo os melhores hambúrgueres da região, o <strong style="color:#EA1D2C;">Burger Express</strong> se consolidou como referência em qualidade e sabor.</p><p style="margin-bottom:25px;">Utilizamos apenas carne 100% bovina, pães artesanais frescos diariamente e ingredientes selecionados para garantir a melhor experiência gastronômica.</p><p style="margin-bottom:25px;">Nossa missão é proporcionar momentos especiais através de hambúrgueres excepcionais, com atendimento diferenciado e ambiente acolhedor.</p></div><div style="border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.15);"><iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228762408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr!4v1762945909470!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe></div></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:60px;"><div style="background:white;padding:50px 40px;border-radius:24px;box-shadow:0 10px 35px rgba(0,0,0,0.1);text-align:center;"><h3 style="color:#EA1D2C;font-size:1.8rem;margin-bottom:30px;">🕒 Horário de Funcionamento</h3><p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;"><strong>Segunda a Sábado:</strong><br>11h às 23h</p><p style="font-size:1.2rem;margin:20px 0;padding:10px 0;"><strong>Domingo:</strong><br>12h às 22h</p></div><div style="background:white;padding:50px 40px;border-radius:24px;box-shadow:0 10px 35px rgba(0,0,0,0.1);text-align:center;"><h3 style="color:#EA1D2C;font-size:1.8rem;margin-bottom:30px;">🚚 Delivery</h3><p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;">Entregamos em toda a região</p><p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;"><strong>Taxa:</strong> R$ 5,00</p><p style="font-size:1.2rem;margin:20px 0;padding:10px 0;"><strong>Telefone:</strong><br>(61) 9999-9999</p></div></div></div></section>""", unsafe_allow_html=True)
+# =============== SOBRE NÓS ===============
+st.markdown("""
+<section id="sobre" class="about full-width-section">
+    <div style="max-width:1400px;margin:0 auto;padding:100px 40px;">
+        <h2 class="section-title">Sobre Nós</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;margin-bottom:100px;">
+            <div style="font-size:1.2rem;line-height:1.8;color:#333;">
+                <p style="margin-bottom:25px;">Há mais de 10 anos servindo os melhores hambúrgueres da região, o <strong style="color:#EA1D2C;">Burger Express</strong> se consolidou como referência em qualidade e sabor.</p>
+                <p style="margin-bottom:25px;">Utilizamos apenas carne 100% bovina, pães artesanais frescos diariamente e ingredientes selecionados para garantir a melhor experiência gastronômica.</p>
+                <p style="margin-bottom:25px;">Nossa missão é proporcionar momentos especiais através de hambúrgueres excepcionais, com atendimento diferenciado e ambiente acolhedor.</p>
+            </div>
+            <div style="border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.15);">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228762408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr!4v1762945909470!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:60px;">
+            <div style="background:white;padding:50px 40px;border-radius:24px;box-shadow:0 10px 35px rgba(0,0,0,0.1);text-align:center;">
+                <h3 style="color:#EA1D2C;font-size:1.8rem;margin-bottom:30px;">🕒 Horário de Funcionamento</h3>
+                <p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;"><strong>Segunda a Sábado:</strong><br>11h às 23h</p>
+                <p style="font-size:1.2rem;margin:20px 0;padding:10px 0;"><strong>Domingo:</strong><br>12h às 22h</p>
+            </div>
+            <div style="background:white;padding:50px 40px;border-radius:24px;box-shadow:0 10px 35px rgba(0,0,0,0.1);text-align:center;">
+                <h3 style="color:#EA1D2C;font-size:1.8rem;margin-bottom:30px;">🚚 Delivery</h3>
+                <p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;">Entregamos em toda a região</p>
+                <p style="font-size:1.2rem;margin:20px 0;padding:10px 0;border-bottom:1px solid #f0f0f0;"><strong>Taxa:</strong> R$ 5,00</p>
+                <p style="font-size:1.2rem;margin:20px 0;padding:10px 0;"><strong>Telefone:</strong><br>(61) 9999-9999</p>
+            </div>
+        </div>
+    </div>
+</section>
+""", unsafe_allow_html=True)
 
-# ==# =============== FOOTER ORIGINAL ===============
+# =============== FOOTER ORIGINAL ===============
 st.markdown("""
 <style>
     .footer::before {content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#EA1D2C,#ff4757);}

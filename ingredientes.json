@@ -10,22 +10,22 @@
     "nome": "Pão Brioche",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 80,
-    "minimo": 15
+    "estoque": 40,
+    "minimo": 6
   },
   {
     "nome": "Carne Bovina 180g",
     "categoria": "carnes",
     "unidade": "unidade",
-    "estoque": 50,
-    "minimo": 10
+    "estoque": 200,
+    "minimo": 30
   },
   {
     "nome": "Queijo Cheddar",
     "categoria": "queijos",
     "unidade": "fatia",
-    "estoque": 200,
-    "minimo": 30
+    "estoque": 180,
+    "minimo": 25
   },
   {
     "nome": "Queijo Mussarela",
