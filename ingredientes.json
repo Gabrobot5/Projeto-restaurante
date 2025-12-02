@@ -3,8 +3,8 @@
     "nome": "Pão de Hambúrguer",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 100,
-    "minimo": 20
+    "estoque": 200,
+    "minimo": 30
   },
   {
     "nome": "Pão Brioche",

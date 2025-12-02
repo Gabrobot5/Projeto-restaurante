@@ -3,7 +3,21 @@
     "nome": "Burger Classic",
     "preco": 18.9,
     "cat": "hamburgers",
-    "img": "burger-classic.jpg"
+    "img": "burger-classic.jpg",
+    "ingredientes": [
+      {
+        "nome": "Pão de Hambúrguer",
+        "quantidade": 1
+      },
+      {
+        "nome": "Carne Bovina 180g",
+        "quantidade": 1
+      },
+      {
+        "nome": "Queijo Cheddar",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Burger Bacon",
@@ -44,13 +58,15 @@
   {
     "nome": "Milk Shake",
     "preco": 16.9,
-    "cat": "sobremesas",
-    "img": "milkshake.jpg"
+    "cat": "acompanhamentos",
+    "img": "milkshake.jpg",
+    "ingredientes": []
   },
   {
     "nome": "Brownie",
     "preco": 14.9,
     "cat": "sobremesas",
-    "img": "brownie.jpg"
+    "img": "brownie.jpg",
+    "ingredientes": []
   }
 ]

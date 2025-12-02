@@ -163,6 +163,7 @@ def produto_disponivel(nome_prato):
         return disponivel
     return False
 
+
 # =============== CSS ORIGINAL ===============
 st.markdown("""
 <style>
@@ -240,6 +241,7 @@ st.markdown(f"""
             <a href="#inicio" style="color:#2e2e2e;text-decoration:none;margin:0 20px;font-weight:600;">Início</a>
             <a href="#menu" style="color:#2e2e2e;text-decoration:none;margin:0 20px;font-weight:600;">Menu</a>
             <a href="#sobre" style="color:#2e2e2e;text-decoration:none;margin:0 20px;font-weight:600;">Sobre</a>
+            <a href="#desenvolvedores" style="color:#2e2e2e;text-decoration:none;margin:0 20px;font-weight:600;">Devs</a>
         </nav>
         <div style="display:flex;gap:20px;align-items:center;">
             <a href="/admin" target="_self" class="admin-btn">
@@ -557,6 +559,8 @@ if st.session_state.carrinho:
                 limpar_carrinho()
                 st.rerun()
 
+
+
 # =============== SOBRE NÓS ===============
 st.markdown("""
 <section id="sobre" class="about full-width-section">
@@ -569,7 +573,7 @@ st.markdown("""
                 <p style="margin-bottom:25px;">Nossa missão é proporcionar momentos especiais através de hambúrgueres excepcionais, com atendimento diferenciado e ambiente acolhedor.</p>
             </div>
             <div style="border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.15);">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228762408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr!4v1762945909470!5m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228762408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:60px;">
@@ -587,6 +591,286 @@ st.markdown("""
         </div>
     </div>
 </section>
+""", unsafe_allow_html=True)
+
+# =============== SEÇÃO DESENVOLVEDORES ===============
+st.markdown("""
+<style>
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0px); }
+    }
+    
+    @keyframes gradient {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    .dev-title {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    
+    .dev-emoji {
+        display: inline-block;
+        animation: pulse 2s infinite ease-in-out;
+        font-size: 2.5rem;
+    }
+    
+    .dev-card-animated {
+        background: white;
+        border-radius: 16px;
+        padding: 40px 30px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+        animation: float 4s infinite ease-in-out;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .dev-card-animated:hover {
+        animation-play-state: paused;
+        transform: translateY(-10px);
+        box-shadow: 0 15px 35px rgba(234, 29, 44, 0.2);
+    }
+    
+    .dev-card-animated::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background: linear-gradient(90deg, #EA1D2C, #ff6b81, #EA1D2C);
+        background-size: 200% 200%;
+        animation: gradient 3s infinite linear;
+    }
+    
+    .dev-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        margin: 0 auto 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 3px solid white;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .dev-card-animated:hover .dev-avatar {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(234, 29, 44, 0.3);
+    }
+    
+    .github-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(90deg, #2e2e2e, #4a4a4a);
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .github-btn:hover {
+        background: linear-gradient(90deg, #EA1D2C, #c91a26);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(234, 29, 44, 0.4);
+    }
+    
+    .github-btn::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    
+    .github-btn:hover::after {
+        left: 100%;
+    }
+    
+    .role-badge {
+        background: linear-gradient(90deg, #EA1D2C, #ff6b81);
+        color: white;
+        padding: 6px 20px;
+        border-radius: 20px;
+        display: inline-block;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        animation: pulse 3s infinite ease-in-out;
+        animation-delay: 1s;
+    }
+    
+    .delay-1 {
+        animation-delay: 0.3s;
+    }
+    
+    .delay-2 {
+        animation-delay: 0.6s;
+    }
+    
+    .delay-3 {
+        animation-delay: 0.9s;
+    }
+</style>
+
+<section id="desenvolvedores" class="full-width-section" style="padding:80px 0;background:#fff;">
+    <div style="max-width:1200px;margin:0 auto;padding:0 20px;">
+        <div class="dev-title">
+            <span class="dev-emoji">👨‍💻</span>
+            <h2 style="
+                font-size: 2.5rem; 
+                color: #2e2e2e; 
+                margin: 15px 0; 
+                font-weight: 700;
+                background: linear-gradient(90deg, #EA1D2C, #2e2e2e);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            ">
+                Desenvolvedores
+            </h2>
+            <p style="color:#666;font-size:1.2rem;max-width:600px;margin:0 auto;">
+                Conheça a equipe que trouxe o Burger Express à vida!
+            </p>
+        </div>
+""", unsafe_allow_html=True)
+
+# Container dos cards de desenvolvedores
+st.markdown("""
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:40px;margin-top:50px;">
+""", unsafe_allow_html=True)
+
+# Desenvolvedor 1 - Fabiane Sarres
+st.markdown("""
+<div class="dev-card-animated delay-1">
+    <div class="dev-avatar" style="background:linear-gradient(135deg,#EA1D2C,#ff6b81);">
+        <i class="fas fa-laptop-code" style="font-size:50px;color:white;"></i>
+    </div>
+    <h3 style="color:#2e2e2e;font-size:1.5rem;margin-bottom:10px;font-weight:700;">Fabiane Sarres</h3>
+    <div class="role-badge">Desenvolvedora Frontend</div>
+    <p style="color:#555;margin-bottom:25px;line-height:1.6;font-size:0.95rem;">
+        Especialista em UI/UX, criou a interface responsiva e experiência do usuário da aplicação.
+    </p>
+    <a href="https://github.com/fabianesarres" target="_blank" class="github-btn">
+        <i class="fab fa-github"></i> Ver GitHub
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# Desenvolvedor 2 - Gabriel Duarte
+st.markdown("""
+<div class="dev-card-animated delay-2">
+    <div class="dev-avatar" style="background:linear-gradient(135deg,#2e2e2e,#4a4a4a);">
+        <i class="fas fa-server" style="font-size:50px;color:white;"></i>
+    </div>
+    <h3 style="color:#2e2e2e;font-size:1.5rem;margin-bottom:10px;font-weight:700;">Gabriel Duarte</h3>
+    <div class="role-badge">Desenvolvedor Full Stack</div>
+    <p style="color:#555;margin-bottom:25px;line-height:1.6;font-size:0.95rem;">
+        Responsável pelo backend, integração de APIs e lógica de negócios do Burger Express.
+    </p>
+    <a href="https://github.com/Gabrobot5" target="_blank" class="github-btn">
+        <i class="fab fa-github"></i> Ver GitHub
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+# Desenvolvedor 3 - Patrícia Rodrigues
+st.markdown("""
+<div class="dev-card-animated delay-3">
+    <div class="dev-avatar" style="background:linear-gradient(135deg,#EA1D2C,#2e2e2e);">
+        <i class="fas fa-mobile-alt" style="font-size:50px;color:white;"></i>
+    </div>
+    <h3 style="color:#2e2e2e;font-size:1.5rem;margin-bottom:10px;font-weight:700;">Patrícia Rodrigues</h3>
+    <div class="role-badge">Desenvolvedora Mobile</div>
+    <p style="color:#555;margin-bottom:25px;line-height:1.6;font-size:0.95rem;">
+        Focada na otimização mobile e integração com sistemas de pagamento e delivery.
+    </p>
+    <a href="https://github.com/Patricia470" target="_blank" class="github-btn">
+        <i class="fab fa-github"></i> Ver GitHub
+    </a>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("</div>", unsafe_allow_html=True)
+
+# Tecnologias utilizadas (opcional - com animação também)
+st.markdown("""
+<div style="text-align:center;margin-top:60px;padding:40px;background:linear-gradient(135deg,#f8f8f8,#fff);border-radius:16px;box-shadow:0 8px 25px rgba(0,0,0,0.05);border:1px solid #f0f0f0;">
+    <h3 style="color:#EA1D2C;font-size:1.8rem;margin-bottom:30px;font-weight:700;">
+        <i class="fas fa-cogs" style="margin-right:10px;"></i>
+        Tecnologias Utilizadas
+    </h3>
+    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:15px;">
+        <span style="background:#EA1D2C;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;" 
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(234,29,44,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">Python</span>
+        <span style="background:#EA1D2C;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;"
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(234,29,44,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">Streamlit</span>
+        <span style="background:#2e2e2e;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;"
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(0,0,0,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">HTML/CSS</span>
+        <span style="background:#2e2e2e;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;"
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(0,0,0,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">JavaScript</span>
+        <span style="background:#EA1D2C;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;"
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(234,29,44,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">JSON</span>
+        <span style="background:#2e2e2e;color:white;padding:10px 20px;border-radius:8px;font-weight:600;transition:all 0.3s;cursor:default;"
+              onmouseover="this.style.transform='scale(1.1)';this.style.boxShadow='0 5px 15px rgba(0,0,0,0.3)';" 
+              onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">Git/GitHub</span>
+    </div>
+</div>
+</div>
+</section>
+""", unsafe_allow_html=True)
+
+# Adicionar antes do footer
+st.markdown("""
+<a href="#inicio" style="
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: #EA1D2C;
+    color: white;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(234, 29, 44, 0.3);
+    z-index: 1000;
+    transition: all 0.3s;
+">
+    ↑
+</a>
 """, unsafe_allow_html=True)
 
 # =============== FOOTER ORIGINAL ===============

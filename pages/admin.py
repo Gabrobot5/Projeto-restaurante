@@ -15,6 +15,24 @@ INGREDIENTES_FILE = os.path.join(BASE_DIR, "ingredientes.json")
 PEDIDOS_FILE = os.path.join(BASE_DIR, "pedidos.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "images")
 
+# =============== INICIALIZAÇÃO DE ESTADOS ===============
+if "admin_logado" not in st.session_state:
+    st.session_state.admin_logado = False
+if "editando_prato_index" not in st.session_state:
+    st.session_state.editando_prato_index = None
+if "editando_prato" not in st.session_state:
+    st.session_state.editando_prato = None
+if "modo_edicao" not in st.session_state:
+    st.session_state.modo_edicao = False
+if "ingredientes_editados" not in st.session_state:
+    st.session_state.ingredientes_editados = []
+if "ingredientes_para_remover" not in st.session_state:
+    st.session_state.ingredientes_para_remover = []
+if "novo_ing_nome" not in st.session_state:
+    st.session_state.novo_ing_nome = ""
+if "novo_ing_qtd" not in st.session_state:
+    st.session_state.novo_ing_qtd = 1
+
 # =============== FUNÇÕES DE PEDIDOS ===============
 def carregar_pedidos():
     if os.path.exists(PEDIDOS_FILE):
@@ -184,9 +202,13 @@ def carregar_pratos():
         with open(PRATOS_FILE, "w", encoding="utf-8") as f:
             json.dump(pratos_iniciais, f, ensure_ascii=False, indent=2)
         return pratos_iniciais
+    
+def salvar_pratos(pratos_atualizados):
+    """Salva a lista de pratos no arquivo"""
+    with open(PRATOS_FILE, "w", encoding="utf-8") as f:
+        json.dump(pratos_atualizados, f, ensure_ascii=False, indent=2)
 
 # CSS PROFISSIONAL COM DESIGN MELHORADO E CORES CORRIGIDAS
-# CSS PROFISSIONAL COM CORES CORRIGIDAS NOS SELECT BOXES
 st.markdown("""
 <style>
     /* FUNDO PROFISSIONAL COM PADRÃO SUTIL */
@@ -767,34 +789,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# JavaScript para forçar as cores dos botões
-st.markdown("""
-<script>
-// Aguardar carregamento da página
-setTimeout(function() {
-    // Corrigir botão "Adicionar Ingrediente"
-    const buttons = document.querySelectorAll('button');
-    buttons.forEach(button => {
-        if (button.textContent.includes('Adicionar Ingrediente')) {
-            button.style.color = '#000000' !important;
-            button.style.backgroundColor = '#FFFFFF' !important;
-            button.style.border = '2px solid #b4283c' !important;
-            button.style.fontWeight = 'bold' !important;
-        }
-    });
-    
-    // Corrigir textos das selectboxes
-    const selectContainers = document.querySelectorAll('[data-baseweb="select"]');
-    selectContainers.forEach(container => {
-        const selectedText = container.querySelector('[data-testid="stMarkdownContainer"]');
-        if (selectedText) {
-            selectedText.style.color = '#000000' !important;
-        }
-    });
-}, 500);
-</script>
-""", unsafe_allow_html=True)
-
 if "admin_logado" not in st.session_state:
     st.session_state.admin_logado = False
 
@@ -956,140 +950,383 @@ else:
 
     
     with tab2:
-        st.subheader("🍔 Gestão de Pratos")
-        
-        # Formulário de cadastro de prato
-        with st.form("cadastro_prato", clear_on_submit=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                nome = st.text_input("Nome do Prato", placeholder="Ex: Burger Especial")
-                preco = st.number_input("Preço (R$)", min_value=1.0, value=20.0, step=0.5, format="%.2f")
-                
-                # Seleção de ingredientes
-                st.write("**Ingredientes do Prato:**")
-                ingredientes_selecionados = []
-                for ingrediente in ingredientes:
-                    col_ing1, col_ing2 = st.columns([3, 1])
-                    with col_ing1:
-                        if st.checkbox(ingrediente['nome'], key=f"chk_{ingrediente['nome']}"):
-                            with col_ing2:
-                                quantidade = st.number_input(
-                                    "Qtd",
-                                    min_value=1,
-                                    value=1,
-                                    key=f"qtd_{ingrediente['nome']}",
-                                    label_visibility="collapsed"
-                                )
-                                ingredientes_selecionados.append({
-                                    "nome": ingrediente['nome'],
-                                    "quantidade": quantidade
-                                })
+        # =============== MODO EDIÇÃO DE PRATO ===============
+        if st.session_state.editando_prato_index is not None:
+            st.subheader("✏️ Editando Prato")
             
-            with col2:
-                st.write("Categoria")
-                categoria_opcoes = {
-                    "hamburgers": "🍔 Hambúrgueres",
-                    "bebidas": "🥤 Bebidas", 
-                    "acompanhamentos": "🍟 Acompanhamentos",
-                    "sobremesas": "🍰 Sobremesas"
-                }
+            prato_editando = st.session_state.editando_prato
+            index_editando = st.session_state.editando_prato_index
+            
+            # Inicializar listas de ingredientes se necessário
+            if not st.session_state.ingredientes_editados:
+                st.session_state.ingredientes_editados = prato_editando.get('ingredientes', []).copy()
+            
+            # =============== SEÇÃO DE EDITAR INGREDIENTES (FORA DO FORM) ===============
+            st.subheader("🧂 Editar Ingredientes do Prato")
+            
+            # Mostrar ingredientes atuais
+            st.write("**Ingredientes Atuais:**")
+            if not st.session_state.ingredientes_editados:
+                st.info("Nenhum ingrediente adicionado ainda.")
+            
+            # Gerenciar remoção de ingredientes
+            ingredientes_para_remover = []
+            
+            for idx, ingrediente in enumerate(st.session_state.ingredientes_editados):
+                col_ing1, col_ing2, col_ing3 = st.columns([3, 2, 1])
                 
-                categoria_selecionada = st.radio(
-                    "Selecione a categoria:",
-                    options=list(categoria_opcoes.keys()),
-                    format_func=lambda x: categoria_opcoes[x],
-                    label_visibility="collapsed",
-                    horizontal=True
+                with col_ing1:
+                    # Selecionar ingrediente da lista disponível
+                    nomes_ingredientes = [ing['nome'] for ing in carregar_ingredientes()]
+                    ing_atual_idx = nomes_ingredientes.index(ingrediente['nome']) if ingrediente['nome'] in nomes_ingredientes else 0
+                    ingrediente_nome = st.selectbox(
+                        "Ingrediente",
+                        options=nomes_ingredientes,
+                        index=ing_atual_idx,
+                        key=f"ing_nome_{idx}"
+                    )
+                
+                with col_ing2:
+                    # Quantidade do ingrediente
+                    ingrediente_qtd = st.number_input(
+                        "Quantidade",
+                        min_value=1,
+                        value=ingrediente['quantidade'],
+                        key=f"ing_qtd_{idx}"
+                    )
+                
+                with col_ing3:
+                    # Botão para remover ingrediente (FORA DO FORM)
+                    if st.button("🗑️ Remover", key=f"rem_ing_{idx}"):
+                        if idx < len(st.session_state.ingredientes_editados):
+                            ingredientes_para_remover.append(idx)
+                
+                # Atualizar na lista temporária
+                if idx not in ingredientes_para_remover:
+                    st.session_state.ingredientes_editados[idx] = {
+                        "nome": ingrediente_nome,
+                        "quantidade": int(ingrediente_qtd)
+                    }
+            
+            # Remover ingredientes marcados para remoção (em ordem reversa)
+            for idx in sorted(ingredientes_para_remover, reverse=True):
+                if idx < len(st.session_state.ingredientes_editados):
+                    st.session_state.ingredientes_editados.pop(idx)
+            
+            # Se houve remoções, recarregar
+            if ingredientes_para_remover:
+                st.rerun()
+            
+            # =============== ADICIONAR NOVO INGREDIENTE (FORA DO FORM) ===============
+            st.write("**Adicionar Novo Ingrediente:**")
+            col_add1, col_add2, col_add3 = st.columns([3, 2, 1])
+            
+            with col_add1:
+                novo_ing_nome = st.selectbox(
+                    "Selecionar Ingrediente",
+                    options=[ing['nome'] for ing in carregar_ingredientes()],
+                    key="novo_ing_nome_select"
                 )
-                categoria = categoria_selecionada
-                
-                imagem = st.file_uploader("Imagem do Prato", type=["jpg", "jpeg", "png"])
-                
-                # Mostra ingredientes selecionados
-                if ingredientes_selecionados:
-                    st.write("**Ingredientes selecionados:**")
-                    for ing in ingredientes_selecionados:
-                        st.write(f"- {ing['nome']} ({ing['quantidade']} {next((i['unidade'] for i in ingredientes if i['nome'] == ing['nome']), 'un')})")
             
-            submitted = st.form_submit_button("✅ Cadastrar Prato", type="primary")
+            with col_add2:
+                novo_ing_qtd = st.number_input(
+                    "Quantidade",
+                    min_value=1,
+                    value=st.session_state.novo_ing_qtd,
+                    key="novo_ing_qtd_input"
+                )
+                st.session_state.novo_ing_qtd = novo_ing_qtd
             
-            if submitted:
-                if not nome:
-                    st.error("❌ Digite o nome do prato")
-                elif not preco:
-                    st.error("❌ Digite o preço do prato")
-                elif not imagem:
-                    st.error("❌ Selecione uma imagem")
-                elif not ingredientes_selecionados:
-                    st.error("❌ Selecione pelo menos um ingrediente")
-                else:
-                    nomes_existentes = [p["nome"].lower() for p in pratos]
-                    if nome.lower() in nomes_existentes:
-                        st.error("❌ Já existe um prato com este nome")
-                    else:
-                        os.makedirs(IMAGES_DIR, exist_ok=True)
-                        extensao = imagem.name.split('.')[-1]
-                        nome_imagem = f"{nome.lower().replace(' ', '_')}.{extensao}"
-                        caminho_imagem = os.path.join(IMAGES_DIR, nome_imagem)
-                        
-                        with open(caminho_imagem, "wb") as f:
-                            f.write(imagem.getbuffer())
-                        
-                        novo_prato = {
-                            "nome": nome,
-                            "preco": float(preco),
-                            "cat": categoria,
-                            "img": nome_imagem,
-                            "ingredientes": ingredientes_selecionados
-                        }
-                        
-                        pratos.append(novo_prato)
-                        with open(PRATOS_FILE, "w", encoding="utf-8") as f:
-                            json.dump(pratos, f, ensure_ascii=False, indent=2)
-                        
-                        # Adiciona ao estoque de pratos
-                        estoque_pratos[nome] = {'quantidade': 10, 'minimo': 5, 'ativo': True}
-                        with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
-                            json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
-                        
-                        st.success(f"🎉 Prato '{nome}' cadastrado com sucesso!")
-                        st.balloons()
-        
-        # Lista de pratos com ingredientes
-        st.subheader("📋 Pratos Cadastrados")
-        for i, prato in enumerate(pratos):
-            with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}"):
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.write(f"**Categoria:** {prato['cat']}")
-                    st.write(f"**Imagem:** {prato['img']}")
+            with col_add3:
+                if st.button("➕ Adicionar", key="btn_add_ing"):
+                    # Verificar se já existe
+                    existe = False
+                    for ing in st.session_state.ingredientes_editados:
+                        if ing['nome'] == novo_ing_nome:
+                            ing['quantidade'] += novo_ing_qtd
+                            existe = True
+                            break
                     
-                    # Verifica disponibilidade baseada nos ingredientes
-                    disponivel, faltantes = verificar_disponibilidade_prato(prato, ingredientes)
-                    status = "✅ Disponível" if disponivel else f"❌ Faltam: {', '.join(faltantes)}"
-                    st.write(f"**Status:** {status}")
+                    if not existe:
+                        st.session_state.ingredientes_editados.append({
+                            "nome": novo_ing_nome,
+                            "quantidade": int(novo_ing_qtd)
+                        })
+                    st.rerun()
+            
+            # Mostrar resumo dos ingredientes
+            st.write("**Resumo dos Ingredientes:**")
+            if st.session_state.ingredientes_editados:
+                for ing in st.session_state.ingredientes_editados:
+                    # Encontrar unidade do ingrediente
+                    ingrediente_info = next((i for i in carregar_ingredientes() if i['nome'] == ing['nome']), None)
+                    unidade = ingrediente_info['unidade'] if ingrediente_info else "unidade"
+                    st.write(f"• {ing['nome']}: {ing['quantidade']} {unidade}")
+            else:
+                st.warning("⚠️ Adicione pelo menos um ingrediente ao prato.")
+            
+            # =============== FORMULÁRIO PRINCIPAL DE EDIÇÃO ===============
+            with st.form("editar_prato_form"):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    nome_editado = st.text_input("Nome do Prato", value=prato_editando['nome'])
+                    preco_editado = st.number_input(
+                        "Preço (R$)", 
+                        min_value=1.0, 
+                        value=float(prato_editando['preco']), 
+                        step=0.5, 
+                        format="%.2f"
+                    )
+                    
+                    # Categoria
+                    categoria_opcoes = {
+                        "hamburgers": "🍔 Hambúrgueres",
+                        "bebidas": "🥤 Bebidas", 
+                        "acompanhamentos": "🍟 Acompanhamentos",
+                        "sobremesas": "🍰 Sobremesas"
+                    }
+                    
+                    # Encontrar índice da categoria atual
+                    cat_atual = prato_editando['cat']
+                    opcoes_keys = list(categoria_opcoes.keys())
+                    index_cat = opcoes_keys.index(cat_atual) if cat_atual in opcoes_keys else 0
+                    
+                    categoria_editada = st.radio(
+                        "Categoria:",
+                        options=opcoes_keys,
+                        index=index_cat,
+                        format_func=lambda x: categoria_opcoes[x],
+                        horizontal=True
+                    )
                 
                 with col2:
-                    st.write("**Ingredientes:**")
-                    for ing in prato.get('ingredientes', []):
-                        ingrediente_info = next((i for i in ingredientes if i['nome'] == ing['nome']), None)
-                        if ingrediente_info:
-                            st.write(f"- {ing['nome']}: {ing['quantidade']} {ingrediente_info['unidade']}")
+                    st.write("**Imagem Atual:**")
+                    st.info(f"{prato_editando['img']}")
+                    
+                    nova_imagem = st.file_uploader(
+                        "Nova Imagem (opcional)", 
+                        type=["jpg", "jpeg", "png"],
+                        key="nova_imagem_uploader"
+                    )
                 
-                col_btn1, col_btn2 = st.columns(2)
-                with col_btn1:
-                    if st.button("✏️ Editar", key=f"edit_{i}"):
-                        st.info("Funcionalidade de edição em desenvolvimento")
-                with col_btn2:
-                    if st.button("🗑️ Excluir", key=f"del_{i}"):
-                        if prato['nome'] in estoque_pratos:
-                            del estoque_pratos[prato['nome']]
-                        pratos.pop(i)
-                        with open(PRATOS_FILE, "w", encoding="utf-8") as f:
-                            json.dump(pratos, f, ensure_ascii=False, indent=2)
-                        with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
-                            json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
+                # Botões do formulário de edição
+                col_salvar, col_cancelar = st.columns(2)
+                with col_salvar:
+                    salvar_submit = st.form_submit_button("💾 Salvar Alterações", type="primary")
+                    if salvar_submit:
+                        # Validar dados
+                        if not nome_editado:
+                            st.error("❌ Digite o nome do prato")
+                        elif not preco_editado:
+                            st.error("❌ Digite o preço do prato")
+                        elif not st.session_state.ingredientes_editados:
+                            st.error("❌ Adicione pelo menos um ingrediente ao prato")
+                        else:
+                            # Verificar se o nome foi alterado (e se já existe outro com o novo nome)
+                            if nome_editado != prato_editando['nome']:
+                                # Verificar se já existe outro prato com o novo nome
+                                if any(p['nome'].lower() == nome_editado.lower() for p in pratos if p['nome'] != prato_editando['nome']):
+                                    st.error(f"❌ Já existe um prato com o nome '{nome_editado}'")
+                                else:
+                                    # Atualizar no estoque se o nome mudou
+                                    if prato_editando['nome'] in estoque_pratos:
+                                        estoque_info = estoque_pratos.pop(prato_editando['nome'])
+                                        estoque_pratos[nome_editado] = estoque_info
+                            else:
+                                nome_editado = prato_editando['nome']
+                            
+                            # Atualizar imagem se fornecida
+                            nome_imagem = prato_editando['img']
+                            if nova_imagem:
+                                os.makedirs(IMAGES_DIR, exist_ok=True)
+                                extensao = nova_imagem.name.split('.')[-1]
+                                nome_imagem = f"{nome_editado.lower().replace(' ', '_')}.{extensao}"
+                                caminho_imagem = os.path.join(IMAGES_DIR, nome_imagem)
+                                
+                                with open(caminho_imagem, "wb") as f:
+                                    f.write(nova_imagem.getbuffer())
+                            
+                            # Atualizar prato
+                            pratos_atualizados = carregar_pratos()
+                            pratos_atualizados[index_editando] = {
+                                "nome": nome_editado,
+                                "preco": float(preco_editado),
+                                "cat": categoria_editada,
+                                "img": nome_imagem,
+                                "ingredientes": st.session_state.ingredientes_editados.copy()
+                            }
+                            
+                            # Salvar alterações
+                            salvar_pratos(pratos_atualizados)
+                            with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
+                                json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
+                            
+                            # Limpar estados
+                            st.session_state.editando_prato_index = None
+                            st.session_state.editando_prato = None
+                            st.session_state.ingredientes_editados = []
+                            st.session_state.ingredientes_para_remover = []
+                            st.session_state.novo_ing_nome = ""
+                            st.session_state.novo_ing_qtd = 1
+                            
+                            st.success(f"✅ Prato '{nome_editado}' atualizado com sucesso!")
+                            st.rerun()
+                
+                with col_cancelar:
+                    cancelar_submit = st.form_submit_button("❌ Cancelar", type="secondary")
+                    if cancelar_submit:
+                        # Limpar estados
+                        st.session_state.editando_prato_index = None
+                        st.session_state.editando_prato = None
+                        st.session_state.ingredientes_editados = []
+                        st.session_state.ingredientes_para_remover = []
+                        st.session_state.novo_ing_nome = ""
+                        st.session_state.novo_ing_qtd = 1
                         st.rerun()
+        
+        else:
+            # =============== FORMA ORIGINAL (SEM EDIÇÃO) ===============
+            st.subheader("🍔 Gestão de Pratos")
+            
+            # Formulário de cadastro de prato
+            with st.form("cadastro_prato", clear_on_submit=True):
+                col1, col2 = st.columns(2)
+                with col1:
+                    nome = st.text_input("Nome do Prato", placeholder="Ex: Burger Especial")
+                    preco = st.number_input("Preço (R$)", min_value=1.0, value=20.0, step=0.5, format="%.2f")
+                    
+                    # Seleção de ingredientes
+                    st.write("**Ingredientes do Prato:**")
+                    ingredientes_selecionados = []
+                    for ingrediente in ingredientes:
+                        col_ing1, col_ing2 = st.columns([3, 1])
+                        with col_ing1:
+                            if st.checkbox(ingrediente['nome'], key=f"chk_{ingrediente['nome']}"):
+                                with col_ing2:
+                                    quantidade = st.number_input(
+                                        "Qtd",
+                                        min_value=1,
+                                        value=1,
+                                        key=f"qtd_{ingrediente['nome']}",
+                                        label_visibility="collapsed"
+                                    )
+                                    ingredientes_selecionados.append({
+                                        "nome": ingrediente['nome'],
+                                        "quantidade": quantidade
+                                    })
+                
+                with col2:
+                    st.write("Categoria")
+                    categoria_opcoes = {
+                        "hamburgers": "🍔 Hambúrgueres",
+                        "bebidas": "🥤 Bebidas", 
+                        "acompanhamentos": "🍟 Acompanhamentos",
+                        "sobremesas": "🍰 Sobremesas"
+                    }
+                    
+                    categoria_selecionada = st.radio(
+                        "Selecione a categoria:",
+                        options=list(categoria_opcoes.keys()),
+                        format_func=lambda x: categoria_opcoes[x],
+                        label_visibility="collapsed",
+                        horizontal=True
+                    )
+                    categoria = categoria_selecionada
+                    
+                    imagem = st.file_uploader("Imagem do Prato", type=["jpg", "jpeg", "png"])
+                    
+                    # Mostra ingredientes selecionados
+                    if ingredientes_selecionados:
+                        st.write("**Ingredientes selecionados:**")
+                        for ing in ingredientes_selecionados:
+                            st.write(f"- {ing['nome']} ({ing['quantidade']} {next((i['unidade'] for i in ingredientes if i['nome'] == ing['nome']), 'un')})")
+                
+                submitted = st.form_submit_button("✅ Cadastrar Prato", type="primary")
+                
+                if submitted:
+                    if not nome:
+                        st.error("❌ Digite o nome do prato")
+                    elif not preco:
+                        st.error("❌ Digite o preço do prato")
+                    elif not imagem:
+                        st.error("❌ Selecione uma imagem")
+                    elif not ingredientes_selecionados:
+                        st.error("❌ Selecione pelo menos um ingrediente")
+                    else:
+                        nomes_existentes = [p["nome"].lower() for p in pratos]
+                        if nome.lower() in nomes_existentes:
+                            st.error("❌ Já existe um prato com este nome")
+                        else:
+                            os.makedirs(IMAGES_DIR, exist_ok=True)
+                            extensao = imagem.name.split('.')[-1]
+                            nome_imagem = f"{nome.lower().replace(' ', '_')}.{extensao}"
+                            caminho_imagem = os.path.join(IMAGES_DIR, nome_imagem)
+                            
+                            with open(caminho_imagem, "wb") as f:
+                                f.write(imagem.getbuffer())
+                            
+                            novo_prato = {
+                                "nome": nome,
+                                "preco": float(preco),
+                                "cat": categoria,
+                                "img": nome_imagem,
+                                "ingredientes": ingredientes_selecionados
+                            }
+                            
+                            pratos.append(novo_prato)
+                            with open(PRATOS_FILE, "w", encoding="utf-8") as f:
+                                json.dump(pratos, f, ensure_ascii=False, indent=2)
+                            
+                            # Adiciona ao estoque de pratos
+                            estoque_pratos[nome] = {'quantidade': 10, 'minimo': 5, 'ativo': True}
+                            with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
+                                json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
+                            
+                            st.success(f"🎉 Prato '{nome}' cadastrado com sucesso!")
+                            st.balloons()
+            
+            # Lista de pratos com ingredientes
+            st.subheader("📋 Pratos Cadastrados")
+            for i, prato in enumerate(pratos):
+                with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}"):
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write(f"**Categoria:** {prato['cat']}")
+                        st.write(f"**Imagem:** {prato['img']}")
+                        
+                        # Verifica disponibilidade baseada nos ingredientes
+                        disponivel, faltantes = verificar_disponibilidade_prato(prato, ingredientes)
+                        status = "✅ Disponível" if disponivel else f"❌ Faltam: {', '.join(faltantes)}"
+                        st.write(f"**Status:** {status}")
+                    
+                    with col2:
+                        st.write("**Ingredientes:**")
+                        for ing in prato.get('ingredientes', []):
+                            ingrediente_info = next((i for i in ingredientes if i['nome'] == ing['nome']), None)
+                            if ingrediente_info:
+                                st.write(f"- {ing['nome']}: {ing['quantidade']} {ingrediente_info['unidade']}")
+                    
+                    col_btn1, col_btn2 = st.columns(2)
+                    with col_btn1:
+                        # BOTÃO EDITAR FUNCIONAL
+                        if st.button("✏️ Editar", key=f"edit_{i}"):
+                            st.session_state.editando_prato_index = i
+                            st.session_state.editando_prato = prato.copy()
+                            # Inicializar ingredientes para edição
+                            st.session_state.ingredientes_editados = prato.get('ingredientes', []).copy()
+                            st.rerun()
+                    
+                    with col_btn2:
+                        if st.button("🗑️ Excluir", key=f"del_{i}"):
+                            if prato['nome'] in estoque_pratos:
+                                del estoque_pratos[prato['nome']]
+                            pratos.pop(i)
+                            with open(PRATOS_FILE, "w", encoding="utf-8") as f:
+                                json.dump(pratos, f, ensure_ascii=False, indent=2)
+                            with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
+                                json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
+                            st.rerun()
     
     with tab3:
         st.subheader("📋 Pedidos em Tempo Real")
@@ -1255,16 +1492,299 @@ else:
         with col4:
             st.metric("Ingredientes em Alerta", len(ingredientes_baixo))
         
-        # Custo estimado dos pratos
-        st.subheader("💲 Custo Estimado por Prato")
-        for prato in pratos:
-            custo_estimado = calcular_custo_prato(prato, ingredientes)
-            lucro = prato['preco'] - custo_estimado
-            margem = (lucro / prato['preco']) * 100 if prato['preco'] > 0 else 0
+        # =============== CUSTO ESTIMADO POR PRATO - MELHORADO ===============
+        st.subheader("💲 Análise de Custos e Lucros")
+        
+        # Opções de filtro
+        col_filtro1, col_filtro2, col_filtro3 = st.columns(3)
+        with col_filtro1:
+            filtrar_categoria = st.selectbox(
+                "Filtrar por Categoria",
+                options=["Todas"] + list(set(p['cat'] for p in pratos)),
+                index=0
+            )
+        
+        with col_filtro2:
+            ordenar_por = st.selectbox(
+                "Ordenar por",
+                options=["Maior Lucro", "Menor Lucro", "Maior Margem", "Menor Margem", "Nome A-Z", "Nome Z-A"]
+            )
+        
+        with col_filtro3:
+            mostrar_detalhes = st.checkbox("Mostrar detalhes dos custos", value=False)
+        
+        # Filtrar pratos
+        pratos_filtrados = pratos
+        if filtrar_categoria != "Todas":
+            pratos_filtrados = [p for p in pratos if p['cat'] == filtrar_categoria]
+        
+        if not pratos_filtrados:
+            st.info("📝 Nenhum prato encontrado com os filtros selecionados.")
+        else:
+            # Calcular custos e preparar dados
+            dados_pratos = []
+            for prato in pratos_filtrados:
+                custo_estimado = calcular_custo_prato(prato, ingredientes)
+                lucro = prato['preco'] - custo_estimado
+                margem = (lucro / prato['preco']) * 100 if prato['preco'] > 0 else 0
+                
+                dados_pratos.append({
+                    'nome': prato['nome'],
+                    'categoria': prato['cat'],
+                    'preco': prato['preco'],
+                    'custo': custo_estimado,
+                    'lucro': lucro,
+                    'margem': margem
+                })
             
-            st.write(f"**{prato['nome']}**")
-            st.write(f"Preço: R$ {prato['preco']:.2f} | Custo: R$ {custo_estimado:.2f} | Lucro: R$ {lucro:.2f} ({margem:.1f}%)")
-            st.progress(min(margem/100, 1), text=f"Margem: {margem:.1f}%")
+            # Ordenar dados
+            if ordenar_por == "Maior Lucro":
+                dados_pratos.sort(key=lambda x: x['lucro'], reverse=True)
+            elif ordenar_por == "Menor Lucro":
+                dados_pratos.sort(key=lambda x: x['lucro'])
+            elif ordenar_por == "Maior Margem":
+                dados_pratos.sort(key=lambda x: x['margem'], reverse=True)
+            elif ordenar_por == "Menor Margem":
+                dados_pratos.sort(key=lambda x: x['margem'])
+            elif ordenar_por == "Nome A-Z":
+                dados_pratos.sort(key=lambda x: x['nome'])
+            elif ordenar_por == "Nome Z-A":
+                dados_pratos.sort(key=lambda x: x['nome'], reverse=True)
+            
+            # Cards de análise
+            total_preco = sum(p['preco'] for p in dados_pratos)
+            total_custo = sum(p['custo'] for p in dados_pratos)
+            total_lucro = sum(p['lucro'] for p in dados_pratos)
+            margem_media = (total_lucro / total_preco * 100) if total_preco > 0 else 0
+            
+            # CORREÇÃO: Usando HTML para mostrar números completos
+            col_res1, col_res2, col_res3, col_res4 = st.columns(4)
+            
+            with col_res1:
+                st.markdown(f"""
+                <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 5px;">💰 Total Vendas</div>
+                    <div style="color: white; font-size: 1.8rem; font-weight: bold;">R$ {total_preco:.2f}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_res2:
+                st.markdown(f"""
+                <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 5px;">📦 Total Custos</div>
+                    <div style="color: white; font-size: 1.8rem; font-weight: bold;">R$ {total_custo:.2f}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_res3:
+                st.markdown(f"""
+                <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 5px;">💵 Total Lucro</div>
+                    <div style="color: white; font-size: 1.8rem; font-weight: bold;">R$ {total_lucro:.2f}</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_res4:
+                st.markdown(f"""
+                <div style="background: rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: rgba(255,255,255,0.8); font-size: 0.9rem; margin-bottom: 5px;">📈 Margem Média</div>
+                    <div style="color: white; font-size: 1.8rem; font-weight: bold;">{margem_media:.1f}%</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.divider()
+            
+            # Lista detalhada de pratos
+            for idx, dado in enumerate(dados_pratos):
+                with st.expander(f"🍔 {dado['nome']} - R$ {dado['preco']:.2f} | 📈 {dado['margem']:.1f}%", 
+                               expanded=(idx == 0 and mostrar_detalhes)):
+                    
+                    col_info1, col_info2 = st.columns(2)
+                    
+                    with col_info1:
+                        st.write("**Informações Financeiras:**")
+                        
+                        # Métricas em colunas - também corrigidas
+                        col_met1, col_met2, col_met3 = st.columns(3)
+                        with col_met1:
+                            st.markdown(f"""
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; text-align: center;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">Preço</div>
+                                <div style="color: white; font-size: 1.2rem; font-weight: bold;">R$ {dado['preco']:.2f}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        with col_met2:
+                            st.markdown(f"""
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; text-align: center;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">Custo</div>
+                                <div style="color: white; font-size: 1.2rem; font-weight: bold;">R$ {dado['custo']:.2f}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        with col_met3:
+                            st.markdown(f"""
+                            <div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; text-align: center;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">Lucro</div>
+                                <div style="color: #1dd1a1; font-size: 1.2rem; font-weight: bold;">R$ {dado['lucro']:.2f}</div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Barra de margem com cores
+                        st.write(f"**Margem de Lucro: {dado['margem']:.1f}%**")
+                        
+                        # Definir cor baseada na margem
+                        if dado['margem'] > 50:
+                            cor = "#1dd1a1"  # Verde - excelente
+                        elif dado['margem'] > 30:
+                            cor = "#54a0ff"  # Azul - boa
+                        elif dado['margem'] > 15:
+                            cor = "#feca57"  # Amarelo - média
+                        else:
+                            cor = "#ff6b6b"  # Vermelho - baixa
+                        
+                        # Barra de progresso customizada
+                        st.markdown(f"""
+                        <div style="background: rgba(255,255,255,0.1); border-radius: 10px; padding: 2px; margin: 8px 0;">
+                            <div style="background: {cor}; width: {min(dado['margem'], 100)}%; height: 20px; border-radius: 8px;"></div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        # Legenda da margem
+                        if dado['margem'] > 50:
+                            st.success("✅ Margem Excelente!")
+                        elif dado['margem'] > 30:
+                            st.info("📊 Margem Boa")
+                        elif dado['margem'] > 15:
+                            st.warning("⚠️ Margem Média")
+                        else:
+                            st.error("📉 Margem Baixa - Considere ajustar preço ou custos")
+                    
+                    with col_info2:
+                        st.write("**Recomendações:**")
+                        
+                        # Análise e recomendações
+                        if dado['margem'] < 15:
+                            st.error("""
+                            **Ações Sugeridas:**
+                            - Aumente o preço de venda
+                            - Reduza custos de ingredientes
+                            - Otimize a receita
+                            - Considere promoções para aumentar volume
+                            """)
+                        elif dado['margem'] < 30:
+                            st.warning("""
+                            **Oportunidades:**
+                            - Avalie pequeno ajuste de preço
+                            - Verifique fornecedores alternativos
+                            - Considere versão premium
+                            """)
+                        else:
+                            st.success("""
+                            **Status: Ótimo!**
+                            - Mantenha a estratégia atual
+                            - Pode ser carro-chefe de vendas
+                            - Considere expandir linha relacionada
+                            """)
+                        
+                        # Indicador visual rápido
+                        st.write("**Custo vs Preço:**")
+                        
+                        # Corrigir também as barras de progresso
+                        percent_custo = (dado['custo'] / dado['preco'] * 100) if dado['preco'] > 0 else 0
+                        percent_lucro = (dado['lucro'] / dado['preco'] * 100) if dado['preco'] > 0 else 0
+                        
+                        col_custo1, col_custo2 = st.columns(2)
+                        with col_custo1:
+                            st.markdown(f"""
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">Custo: {percent_custo:.1f}%</div>
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 10px;">
+                                    <div style="background: #ff6b6b; width: {min(percent_custo, 100)}%; height: 100%; border-radius: 5px;"></div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                        with col_custo2:
+                            st.markdown(f"""
+                            <div style="margin-bottom: 10px;">
+                                <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">Lucro: {percent_lucro:.1f}%</div>
+                                <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 10px;">
+                                    <div style="background: #1dd1a1; width: {min(percent_lucro, 100)}%; height: 100%; border-radius: 5px;"></div>
+                                </div>
+                            </div>
+                            """, unsafe_allow_html=True)
+                    
+                    # Detalhes dos ingredientes (se solicitado)
+                    if mostrar_detalhes:
+                        st.write("**🔍 Detalhamento de Custos:**")
+                        
+                        # Encontrar o prato completo para ver ingredientes
+                        prato_completo = next((p for p in pratos if p['nome'] == dado['nome']), None)
+                        if prato_completo and prato_completo.get('ingredientes'):
+                            for ingrediente in prato_completo['ingredientes']:
+                                # Calcular custo deste ingrediente
+                                precos_ingredientes = {
+                                    "Pão de Hambúrguer": 1.50, "Pão Brioche": 2.00, "Carne Bovina 180g": 6.00,
+                                    "Queijo Cheddar": 1.50, "Queijo Mussarela": 1.20, "Bacon": 2.00,
+                                    "Alface": 0.50, "Tomate": 0.30, "Cebola Roxa": 0.20, "Molho Especial": 1.00,
+                                    "Maionese": 0.80, "Ketchup": 0.30, "Mostarda": 0.30, "Batata Palha": 1.50,
+                                    "Coca-Cola 2L": 8.00, "Guaraná 2L": 7.00
+                                }
+                                
+                                custo_ing = precos_ingredientes.get(ingrediente['nome'], 1.00) * ingrediente['quantidade']
+                                percentual_ing = (custo_ing / dado['custo'] * 100) if dado['custo'] > 0 else 0
+                                
+                                col_ing1, col_ing2, col_ing3 = st.columns([3, 2, 2])
+                                with col_ing1:
+                                    st.write(f"• {ingrediente['nome']} (x{ingrediente['quantidade']})")
+                                with col_ing2:
+                                    st.markdown(f"""
+                                    <div style="color: white; font-weight: 500;">R$ {custo_ing:.2f}</div>
+                                    """, unsafe_allow_html=True)
+                                with col_ing3:
+                                    st.markdown(f"""
+                                    <div style="margin-top: 5px;">
+                                        <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">{percentual_ing:.1f}% do custo</div>
+                                        <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 8px;">
+                                            <div style="background: #54a0ff; width: {min(percentual_ing, 100)}%; height: 100%; border-radius: 5px;"></div>
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+            
+            # Gráfico de resumo (opcional)
+            st.divider()
+            if len(dados_pratos) > 1:
+                st.write("**📊 Comparativo entre Pratos:**")
+                
+                # Criar gráfico simples usando métricas side-by-side
+                num_pratos = min(5, len(dados_pratos))  # Mostrar até 5 pratos para não poluir
+                cols_grafico = st.columns(num_pratos)
+                
+                for i in range(num_pratos):
+                    with cols_grafico[i]:
+                        prato_info = dados_pratos[i]
+                        # Card compacto
+                        st.markdown(f"""
+                        <div style="
+                            background: rgba(255,255,255,0.08); 
+                            border-radius: 12px; 
+                            padding: 15px; 
+                            margin: 5px 0;
+                            border-left: 4px solid {'#1dd1a1' if prato_info['margem'] > 30 else '#feca57' if prato_info['margem'] > 15 else '#ff6b6b'};
+                        ">
+                            <div style="font-weight: bold; font-size: 0.9rem; color: white; margin-bottom: 8px;">
+                                {prato_info['nome'][:15]}{'...' if len(prato_info['nome']) > 15 else ''}
+                            </div>
+                            <div style="color: #54a0ff; font-size: 1.1rem; font-weight: bold;">
+                                R$ {prato_info['preco']:.2f}
+                            </div>
+                            <div style="color: #1dd1a1; font-size: 0.9rem; margin-top: 5px;">
+                                +R$ {prato_info['lucro']:.2f}
+                            </div>
+                            <div style="color: {'#1dd1a1' if prato_info['margem'] > 30 else '#feca57' if prato_info['margem'] > 15 else '#ff6b6b'}; 
+                                 font-size: 0.8rem; margin-top: 3px;">
+                                {prato_info['margem']:.1f}%
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
 
 # =============== BOTÕES GLOBAIS ===============
 st.markdown("---")
