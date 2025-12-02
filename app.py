@@ -804,7 +804,7 @@ st.markdown("""
     <div class="dev-avatar" style="background:linear-gradient(135deg,#EA1D2C,#2e2e2e);">
         <i class="fas fa-mobile-alt" style="font-size:50px;color:white;"></i>
     </div>
-    <h3 style="color:#2e2e2e;font-size:1.5rem;margin-bottom:10px;font-weight:700;">Patrícia Rodrigues</h3>
+    <h3 style="color:#2e2e2e;font-size:1.5rem;margin-bottom:10px;font-weight:700;">Patrícia Campos</h3>
     <div class="role-badge">Desenvolvedora Mobile</div>
     <p style="color:#555;margin-bottom:25px;line-height:1.6;font-size:0.95rem;">
         Focada na otimização mobile e integração com sistemas de pagamento e delivery.
