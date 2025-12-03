@@ -16,6 +16,18 @@
       {
         "nome": "Queijo Cheddar",
         "quantidade": 1
+      },
+      {
+        "nome": "Alface",
+        "quantidade": 1
+      },
+      {
+        "nome": "Tomate",
+        "quantidade": 2
+      },
+      {
+        "nome": "Molho Especial",
+        "quantidade": 1
       }
     ]
   },
@@ -23,50 +35,156 @@
     "nome": "Burger Bacon",
     "preco": 22.9,
     "cat": "hamburgers",
-    "img": "burger-bacon.jpg"
+    "img": "burger-bacon.jpg",
+    "ingredientes": [
+      {
+        "nome": "Pão Brioche",
+        "quantidade": 1
+      },
+      {
+        "nome": "Carne Bovina 180g",
+        "quantidade": 1
+      },
+      {
+        "nome": "Queijo Cheddar",
+        "quantidade": 2
+      },
+      {
+        "nome": "Bacon",
+        "quantidade": 3
+      },
+      {
+        "nome": "Alface",
+        "quantidade": 1
+      },
+      {
+        "nome": "Molho Especial",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Double Cheese",
     "preco": 26.9,
     "cat": "hamburgers",
-    "img": "cheese-duplo.jpg"
+    "img": "cheese-duplo.jpg",
+    "ingredientes": [
+      {
+        "nome": "Pão de Hambúrguer",
+        "quantidade": 1
+      },
+      {
+        "nome": "Carne Bovina 180g",
+        "quantidade": 2
+      },
+      {
+        "nome": "Queijo Cheddar",
+        "quantidade": 2
+      },
+      {
+        "nome": "Queijo Mussarela",
+        "quantidade": 2
+      },
+      {
+        "nome": "Cebola Roxa",
+        "quantidade": 3
+      },
+      {
+        "nome": "Molho Especial",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Refrigerante",
     "preco": 8.9,
     "cat": "bebidas",
-    "img": "refri.jpg"
+    "img": "refri.jpg",
+    "ingredientes": [
+      {
+        "nome": "Refrigerante Genérico",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Suco Natural",
     "preco": 12.9,
     "cat": "bebidas",
-    "img": "suco.jpg"
+    "img": "suco.jpg",
+    "ingredientes": [
+      {
+        "nome": "Suco Natural",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Batata Frita",
     "preco": 12.9,
     "cat": "acompanhamentos",
-    "img": "batata-frita.jpg"
+    "img": "batata-frita.jpg",
+    "ingredientes": [
+      {
+        "nome": "Batata para Fritar",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Onion Rings",
     "preco": 15.9,
     "cat": "acompanhamentos",
-    "img": "onion-rings.jpg"
+    "img": "onion-rings.jpg",
+    "ingredientes": [
+      {
+        "nome": "Cebola para Anéis",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Milk Shake",
     "preco": 16.9,
-    "cat": "acompanhamentos",
+    "cat": "sobremesas",
     "img": "milkshake.jpg",
-    "ingredientes": []
+    "ingredientes": [
+      {
+        "nome": "Sorvete de Baunilha",
+        "quantidade": 3
+      },
+      {
+        "nome": "Leite",
+        "quantidade": 200
+      },
+      {
+        "nome": "Calda de Chocolate",
+        "quantidade": 1
+      },
+      {
+        "nome": "Chantilly",
+        "quantidade": 1
+      }
+    ]
   },
   {
     "nome": "Brownie",
     "preco": 14.9,
     "cat": "sobremesas",
     "img": "brownie.jpg",
-    "ingredientes": []
+    "ingredientes": [
+      {
+        "nome": "Brownie",
+        "quantidade": 1
+      },
+      {
+        "nome": "Calda de Chocolate",
+        "quantidade": 1
+      },
+      {
+        "nome": "Chantilly",
+        "quantidade": 1
+      }
+    ]
   }
 ]

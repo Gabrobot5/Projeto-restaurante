@@ -3,29 +3,29 @@
     "nome": "Pão de Hambúrguer",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 200,
-    "minimo": 30
+    "estoque": 100,
+    "minimo": 20
   },
   {
     "nome": "Pão Brioche",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 40,
-    "minimo": 6
+    "estoque": 80,
+    "minimo": 15
   },
   {
     "nome": "Carne Bovina 180g",
     "categoria": "carnes",
     "unidade": "unidade",
-    "estoque": 200,
-    "minimo": 30
+    "estoque": 50,
+    "minimo": 10
   },
   {
     "nome": "Queijo Cheddar",
     "categoria": "queijos",
     "unidade": "fatia",
-    "estoque": 180,
-    "minimo": 25
+    "estoque": 200,
+    "minimo": 30
   },
   {
     "nome": "Queijo Mussarela",
@@ -44,9 +44,9 @@
   {
     "nome": "Alface",
     "categoria": "saladas",
-    "unidade": "porção",
-    "estoque": 30,
-    "minimo": 5
+    "unidade": "folha",
+    "estoque": 50,
+    "minimo": 10
   },
   {
     "nome": "Tomate",
@@ -70,45 +70,66 @@
     "minimo": 8
   },
   {
-    "nome": "Maionese",
-    "categoria": "molhos",
-    "unidade": "porção",
-    "estoque": 40,
-    "minimo": 6
-  },
-  {
-    "nome": "Ketchup",
-    "categoria": "molhos",
-    "unidade": "sache",
+    "nome": "Refrigerante Genérico",
+    "categoria": "bebidas",
+    "unidade": "lata",
     "estoque": 200,
     "minimo": 30
   },
   {
-    "nome": "Mostarda",
-    "categoria": "molhos",
-    "unidade": "sache",
-    "estoque": 180,
-    "minimo": 25
+    "nome": "Suco Natural",
+    "categoria": "bebidas",
+    "unidade": "copo",
+    "estoque": 80,
+    "minimo": 15
   },
   {
-    "nome": "Batata Palha",
+    "nome": "Batata para Fritar",
     "categoria": "acompanhamentos",
+    "unidade": "porção",
+    "estoque": 40,
+    "minimo": 8
+  },
+  {
+    "nome": "Cebola para Anéis",
+    "categoria": "acompanhamentos",
+    "unidade": "porção",
+    "estoque": 30,
+    "minimo": 6
+  },
+  {
+    "nome": "Sorvete de Baunilha",
+    "categoria": "sobremesas",
+    "unidade": "bola",
+    "estoque": 60,
+    "minimo": 12
+  },
+  {
+    "nome": "Leite",
+    "categoria": "sobremesas",
+    "unidade": "ml",
+    "estoque": 10000,
+    "minimo": 2000
+  },
+  {
+    "nome": "Brownie",
+    "categoria": "sobremesas",
+    "unidade": "unidade",
+    "estoque": 25,
+    "minimo": 5
+  },
+  {
+    "nome": "Calda de Chocolate",
+    "categoria": "sobremesas",
     "unidade": "porção",
     "estoque": 25,
     "minimo": 5
   },
   {
-    "nome": "Coca-Cola 2L",
-    "categoria": "bebidas",
-    "unidade": "unidade",
+    "nome": "Chantilly",
+    "categoria": "sobremesas",
+    "unidade": "porção",
     "estoque": 30,
     "minimo": 6
-  },
-  {
-    "nome": "Guaraná 2L",
-    "categoria": "bebidas",
-    "unidade": "unidade",
-    "estoque": 25,
-    "minimo": 5
   }
 ]

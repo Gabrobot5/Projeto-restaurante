@@ -1,4 +1,4 @@
-# app.py - VERSÃO COMPLETA COM CHECKOUT COMPLETO
+# app.py - VERSÃO COM TABELA NUTRICIONAL CORRIGIDA
 import streamlit as st
 import os
 import json
@@ -84,6 +84,245 @@ def carregar_pratos():
 
 pratos = carregar_pratos()
 
+# =============== DADOS NUTRICIONAIS ===============
+def obter_informacoes_nutricionais(prato_nome):
+    """Retorna informações nutricionais para cada prato"""
+    tabela_nutricional = {
+        "Burger Classic": {
+            "calorias": 680,
+            "proteinas": 42,
+            "carboidratos": 45,
+            "gorduras": 32,
+            "gorduras_saturadas": 12,
+            "fibra": 4,
+            "sodio": 980,
+            "descricao": "Hambúrguer clássico com carne 100% bovina, queijo, alface, tomate e molho especial.",
+            "alergenicos": ["Glúten", "Lactose", "Leite"]
+        },
+        "Burger Bacon": {
+            "calorias": 850,
+            "proteinas": 45,
+            "carboidratos": 50,
+            "gorduras": 45,
+            "gorduras_saturadas": 18,
+            "fibra": 3,
+            "sodio": 1250,
+            "descricao": "Hambúrguer com bacon crocante, queijo cheddar duplo e pão brioche.",
+            "alergenicos": ["Glúten", "Lactose", "Leite", "Soja"]
+        },
+        "Double Cheese": {
+            "calorias": 920,
+            "proteinas": 58,
+            "carboidratos": 48,
+            "gorduras": 52,
+            "gorduras_saturadas": 22,
+            "fibra": 5,
+            "sodio": 1350,
+            "descricao": "Dois hambúrgueres com dupla camada de queijo cheddar e mussarela.",
+            "alergenicos": ["Glúten", "Lactose", "Leite"]
+        },
+        "Refrigerante": {
+            "calorias": 150,
+            "proteinas": 0,
+            "carboidratos": 38,
+            "gorduras": 0,
+            "gorduras_saturadas": 0,
+            "fibra": 0,
+            "sodio": 45,
+            "descricao": "Refrigerante gelado 350ml.",
+            "alergenicos": []
+        },
+        "Suco Natural": {
+            "calorias": 110,
+            "proteinas": 1,
+            "carboidratos": 26,
+            "gorduras": 0,
+            "gorduras_saturadas": 0,
+            "fibra": 2,
+            "sodio": 10,
+            "descricao": "Suco natural de laranja espremido na hora.",
+            "alergenicos": []
+        },
+        "Batata Frita": {
+            "calorias": 420,
+            "proteinas": 5,
+            "carboidratos": 55,
+            "gorduras": 18,
+            "gorduras_saturadas": 3,
+            "fibra": 6,
+            "sodio": 320,
+            "descricao": "Porção de batatas fritas crocantes temperadas.",
+            "alergenicos": ["Glúten"]
+        },
+        "Onion Rings": {
+            "calorias": 380,
+            "proteinas": 4,
+            "carboidratos": 42,
+            "gorduras": 20,
+            "gorduras_saturadas": 4,
+            "fibra": 3,
+            "sodio": 480,
+            "descricao": "Anéis de cebola empanados e fritos, crocantes por fora e macios por dentro.",
+            "alergenicos": ["Glúten", "Leite"]
+        },
+        "Milk Shake": {
+            "calorias": 520,
+            "proteinas": 12,
+            "carboidratos": 75,
+            "gorduras": 18,
+            "gorduras_saturadas": 11,
+            "fibra": 1,
+            "sodio": 180,
+            "descricao": "Milk shake cremoso de baunilha com cobertura de chocolate.",
+            "alergenicos": ["Lactose", "Leite", "Soja"]
+        },
+        "Brownie": {
+            "calorias": 380,
+            "proteinas": 5,
+            "carboidratos": 55,
+            "gorduras": 16,
+            "gorduras_saturadas": 8,
+            "fibra": 3,
+            "sodio": 220,
+            "descricao": "Brownie de chocolate com nozes e calda de chocolate.",
+            "alergenicos": ["Glúten", "Lactose", "Leite", "Ovos", "Nozes"]
+        }
+    }
+    
+    return tabela_nutricional.get(prato_nome, {
+        "calorias": 0,
+        "proteinas": 0,
+        "carboidratos": 0,
+        "gorduras": 0,
+        "gorduras_saturadas": 0,
+        "fibra": 0,
+        "sodio": 0,
+        "descricao": "Informações nutricionais não disponíveis.",
+        "alergenicos": []
+    })
+
+# =============== FUNÇÃO PARA EXIBIR TABELA NUTRICIONAL ===============
+def exibir_tabela_nutricional(prato_nome):
+    """Exibe a tabela nutricional usando componentes do Streamlit"""
+    info_nutricional = obter_informacoes_nutricionais(prato_nome)
+    
+    # Container com estilo
+    st.markdown(f"""
+    <div style="
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        border-left: 6px solid #EA1D2C;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    ">
+    """, unsafe_allow_html=True)
+    
+    # Cabeçalho
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.markdown(f"### {prato_nome}")
+    with col2:
+        st.markdown(f"""
+        <div style="
+            background: linear-gradient(135deg, #EA1D2C, #c91a26);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        ">
+            {info_nutricional['calorias']} kcal
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Descrição
+    st.info(f"**Descrição:** {info_nutricional['descricao']}")
+    
+    # Tabela nutricional usando st.dataframe ou st.table
+    st.markdown("#### Informações Nutricionais")
+    
+    # Criar dados para a tabela
+    dados_nutricionais = [
+        ["Valor energético", f"{info_nutricional['calorias']} kcal", f"{info_nutricional['calorias']//80}%"],
+        ["Proteínas", f"{info_nutricional['proteinas']}g", f"{info_nutricional['proteinas']*100//75}%"],
+        ["Carboidratos", f"{info_nutricional['carboidratos']}g", f"{info_nutricional['carboidratos']*100//300}%"],
+        ["Gorduras totais", f"{info_nutricional['gorduras']}g", f"{info_nutricional['gorduras']*100//55}%"],
+        ["Gorduras saturadas", f"{info_nutricional['gorduras_saturadas']}g", f"{info_nutricional['gorduras_saturadas']*100//22}%"],
+        ["Fibra alimentar", f"{info_nutricional['fibra']}g", f"{info_nutricional['fibra']*100//25}%"],
+        ["Sódio", f"{info_nutricional['sodio']}mg", f"{info_nutricional['sodio']*100//2400}%"]
+    ]
+    
+    # Exibir como tabela
+    for i, (nutriente, quantidade, vd) in enumerate(dados_nutricionais):
+        bg_color = "#f8f9fa" if i % 2 == 0 else "white"
+        st.markdown(f"""
+        <div style="
+            background: {bg_color};
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        ">
+            <div><strong>{nutriente}</strong></div>
+            <div style="font-weight: bold;">{quantidade}</div>
+            <div style="color: #EA1D2C; font-weight: bold;">{vd}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Resumo com ícones
+    st.markdown("#### Resumo")
+    cols = st.columns(4)
+    
+    with cols[0]:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <div style="color:#EA1D2C;font-size:1.5rem;">🔥</div>
+            <div style="font-size:0.9rem;color:#6c757d;">Calorias</div>
+            <div style="font-weight:bold;color:#2e2e2e;font-size:1.2rem;">{info_nutricional['calorias']}</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with cols[1]:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <div style="color:#EA1D2C;font-size:1.5rem;">💪</div>
+            <div style="font-size:0.9rem;color:#6c757d;">Proteínas</div>
+            <div style="font-weight:bold;color:#2e2e2e;font-size:1.2rem;">{info_nutricional['proteinas']}g</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with cols[2]:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <div style="color:#EA1D2C;font-size:1.5rem;">🍞</div>
+            <div style="font-size:0.9rem;color:#6c757d;">Carboidratos</div>
+            <div style="font-weight:bold;color:#2e2e2e;font-size:1.2rem;">{info_nutricional['carboidratos']}g</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with cols[3]:
+        st.markdown(f"""
+        <div style="text-align: center; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <div style="color:#EA1D2C;font-size:1.5rem;">⚡</div>
+            <div style="font-size:0.9rem;color:#6c757d;">Gorduras</div>
+            <div style="font-weight:bold;color:#2e2e2e;font-size:1.2rem;">{info_nutricional['gorduras']}g</div>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Alérgenos
+    if info_nutricional.get('alergenicos'):
+        st.warning("**Alérgenos presentes:** " + ", ".join(info_nutricional['alergenicos']))
+    
+    # Nota de rodapé
+    st.markdown("---")
+    st.caption("*VD - Valores Diários de Referência: Com base em uma dieta de 2000 kcal ou 8400 kJ. Seus valores diários podem ser maiores ou menores dependendo de suas necessidades energéticas.*")
+    
+    st.markdown("</div>", unsafe_allow_html=True)
+
 # =============== FUNÇÕES DE PEDIDOS ===============
 def salvar_pedido_completo(pedido_completo):
     """Salva o pedido completo com todas as informações do checkout"""
@@ -163,14 +402,38 @@ def produto_disponivel(nome_prato):
         return disponivel
     return False
 
+# =============== FUNÇÕES DE FAVORITOS ===============
+def toggle_favorito(nome_prato):
+    """Alterna o estado de favorito de um prato"""
+    if nome_prato in st.session_state.favoritos:
+        st.session_state.favoritos.remove(nome_prato)
+    else:
+        st.session_state.favoritos.append(nome_prato)
+    # Salvar imediatamente após modificar
+    salvar_favoritos()
 
-# =============== CSS ORIGINAL ===============
+def salvar_favoritos():
+    """Salva os favoritos em um arquivo JSON"""
+    with open("favoritos.json", "w", encoding="utf-8") as f:
+        json.dump(st.session_state.favoritos, f, ensure_ascii=False, indent=2)
+
+def carregar_favoritos():
+    """Carrega os favoritos do arquivo JSON"""
+    if os.path.exists("favoritos.json"):
+        try:
+            with open("favoritos.json", "r", encoding="utf-8") as f:
+                return json.load(f)
+        except:
+            return []
+    return []
+
+# =============== CSS ATUALIZADO ===============
 st.markdown("""
 <style>
     [data-testid="stHeader"] {display: none !important;}
     .header {position: fixed;top:0;left:0;width:100%;z-index:999999;background:#fff;height:72px;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
     .block-container {padding-top: 50px !important;}
-.full-width-section {width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;margin-top: -20px !important;}
+    .full-width-section {width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;margin-top: -20px !important;}
     .stButton > button[kind="primary"] {background:#EA1D2C !important;color:white !important;border:none !important;border-radius:8px !important;font-weight:600 !important;}
     .stButton > button:hover {background:#c91a26 !important;}
     div[data-testid="stImage"] > img {height:180px !important;object-fit:cover !important;border-radius:8px 8px 0 0 !important;width:100% !important;}
@@ -182,23 +445,118 @@ st.markdown("""
     .menu {padding:40px 0 80px;background:#fff;}
     .section-title {text-align:center;font-size:2rem;color:#2e2e2e;margin-bottom:30px;font-weight:700;}
     .products-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;max-width:1200px;margin:0 auto;padding:0 20px;}
-    .product-card {background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:.3s;border:1px solid #f0f0f0;}
+    .product-card {background:white;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:.3s;border:1px solid #f0f0f0;position:relative;}
     .product-card:hover {transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,0.12);}
     .product-info {padding:16px;text-align:left;}
     .product-info h3 {margin:0 0 8px;font-size:1.1rem;color:#2e2e2e;font-weight:600;}
     .price {font-size:1.3rem;font-weight:700;color:#2e2e2e;}
     .about {padding:80px 0;background:#f8f8f8;}
     .footer {background:linear-gradient(135deg,#2e2e2e,#1a1a1a);color:#fff;padding:60px 0 30px;}
+    
+    /* Estilos para botão de favorito FUNCIONAL */
+    .favorite-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(255, 255, 255, 0.95);
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 100;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        font-size: 1.2rem;
+    }
+    
+    .favorite-btn:hover {
+        background: white;
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    .favorite-btn.favorited {
+        color: #EA1D2C;
+    }
+    
+    .favorite-btn:not(.favorited) {
+        color: #999;
+    }
+    
+    .favorite-btn.favorited:hover {
+        color: #c91a26;
+    }
+    
+    /* Estilos para botão de nutrição */
+    .nutrition-btn {
+        background: linear-gradient(135deg, #27ae60, #219653) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        padding: 8px 16px !important;
+        margin-top: 8px !important;
+        width: 100% !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 8px rgba(39, 174, 96, 0.2) !important;
+    }
+    
+    .nutrition-btn:hover {
+        background: linear-gradient(135deg, #219653, #1e8449) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3) !important;
+    }
+    
+    /* Mensagem quando não há favoritos */
+    .no-favorites-container {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f9f9f9;
+        border-radius: 12px;
+        margin: 40px auto;
+        max-width: 600px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    
+    .no-favorites-icon {
+        font-size: 4rem;
+        color: #EA1D2C;
+        margin-bottom: 20px;
+        opacity: 0.7;
+    }
+    
+    .no-favorites-title {
+        color: #2e2e2e;
+        font-size: 1.8rem;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .no-favorites-text {
+        color: #666;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        max-width: 500px;
+        margin: 0 auto;
+    }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">', unsafe_allow_html=True)
 
-# =============== GESTÃO DE ESTADO SIMPLIFICADA ===============
+# =============== GESTÃO DE ESTADO ===============
 if "carrinho" not in st.session_state: 
     st.session_state.carrinho = {}
 if "categoria_atual" not in st.session_state: 
     st.session_state.categoria_atual = "hamburgers"
+if "favoritos" not in st.session_state:
+    st.session_state.favoritos = carregar_favoritos()
+if "tabela_nutricional_ativa" not in st.session_state:
+    st.session_state.tabela_nutricional_ativa = None
 
 # Inicializar dados do checkout
 if "checkout_data" not in st.session_state:
@@ -232,7 +590,7 @@ def limpar_carrinho():
         "troco_para": ""
     }
 
-# =============== HEADER COM CARRINHO CLICÁVEL ===============
+# =============== HEADER ===============
 st.markdown(f"""
 <header class="header">
     <div style="max-width:1200px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;align-items:center;height:100%;">
@@ -276,13 +634,14 @@ st.markdown("""
         <h2 class="section-title">Nosso Menu</h2>
 """, unsafe_allow_html=True)
 
-# Botões de categoria
-cols = st.columns(4)
+# Botões de categoria - AGORA COM 5 COLUNAS (incluindo favoritos)
+cols = st.columns(5)
 categorias = [
     ("hamburgers", "🍔 Hambúrgueres"), 
     ("bebidas", "🥤 Bebidas"), 
     ("acompanhamentos", "🍟 Acomp."), 
-    ("sobremesas", "🍰 Sobremesas")
+    ("sobremesas", "🍰 Sobremesas"),
+    ("favoritos", f"❤️ Favoritos ({len(st.session_state.favoritos)})")
 ]
 
 for i, (key, nome) in enumerate(categorias):
@@ -295,62 +654,257 @@ for i, (key, nome) in enumerate(categorias):
 
 st.markdown('<div class="products-grid">', unsafe_allow_html=True)
 
-# Loop que mostra os produtos
-for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]:
-    disponivel, ingrediente_faltante = verificar_disponibilidade_prato(prato)
+# Mostrar conteúdo baseado na categoria selecionada
+if st.session_state.categoria_atual == "favoritos":
+    # Seção de favoritos
+    pratos_mostrar = [p for p in pratos if p["nome"] in st.session_state.favoritos]
     
-    with st.container():
-        # Card do produto
-        if not disponivel:
-            st.markdown('<div class="product-card" style="opacity:0.6;position:relative;">', unsafe_allow_html=True)
-            st.markdown(f'<div style="position:absolute;top:10px;right:10px;background:#EA1D2C;color:white;padding:4px 8px;border-radius:4px;font-size:0.8rem;z-index:10;">SEM {ingrediente_faltante.upper()}</div>', unsafe_allow_html=True)
-        else:
-            st.markdown('<div class="product-card">', unsafe_allow_html=True)
+    if not pratos_mostrar:
+        # Mensagem quando não há favoritos
+        st.markdown("""
+        <div class="no-favorites-container">
+            <div class="no-favorites-icon">
+                <i class="fas fa-heart-broken"></i>
+            </div>
+            <h3 class="no-favorites-title">Nenhum favorito ainda</h3>
+            <p class="no-favorites-text">
+                Explore nosso menu e clique no ícone ❤️ nos produtos para adicioná-los aos seus favoritos!
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        # Mostrar produtos favoritados
+        for prato in pratos_mostrar:
+            disponivel, ingrediente_faltante = verificar_disponibilidade_prato(prato)
+            
+            with st.container():
+                # Card do produto
+                if not disponivel:
+                    st.markdown('<div class="product-card" style="opacity:0.6;position:relative;">', unsafe_allow_html=True)
+                    st.markdown(f'<div style="position:absolute;top:10px;left:10px;background:#EA1D2C;color:white;padding:4px 8px;border-radius:4px;font-size:0.8rem;z-index:10;">SEM {ingrediente_faltante.upper()}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div class="product-card">', unsafe_allow_html=True)
+                
+                # Botão de favorito (sempre favoritado nesta seção)
+                if st.button("❤️", 
+                           key=f"fav_heart_{prato['nome']}",
+                           help="Remover dos favoritos",
+                           type="secondary" if prato["nome"] in st.session_state.favoritos else "primary"):
+                    toggle_favorito(prato["nome"])
+                    st.rerun()
+                
+                # Ajustar estilo do botão manualmente
+                st.markdown(f"""
+                <style>
+                    [data-testid="baseButton-secondary"][data-testid="baseButton-secondary"] {{
+                        position: absolute;
+                        top: 10px;
+                        right: 10px;
+                        background: white !important;
+                        color: #EA1D2C !important;
+                        border-radius: 50% !important;
+                        width: 40px !important;
+                        height: 40px !important;
+                        min-width: 40px !important;
+                        padding: 0 !important;
+                        z-index: 100;
+                        border: none !important;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+                    }}
+                    [data-testid="baseButton-secondary"]:hover {{
+                        background: white !important;
+                        transform: scale(1.15);
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                    }}
+                </style>
+                """, unsafe_allow_html=True)
+                
+                # Imagem
+                caminho_imagem = os.path.join("images", prato["img"])
+                if os.path.exists(caminho_imagem):
+                    st.image(caminho_imagem, use_container_width=True)
+                else:
+                    st.image("https://via.placeholder.com/400x240/EA1D2C/white?text=Imagem+Indisponível", 
+                            use_container_width=True)
+                
+                # Informações com ingredientes
+                with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}", expanded=False):
+                    st.write("**Ingredientes:**")
+                    if prato.get('ingredientes'):
+                        for ing in prato['ingredientes']:
+                            st.write(f"• {ing['nome']}")
+                    else:
+                        st.write("• Ingredientes padrão")
+                
+                # Botão para ver tabela nutricional - CORRIGIDO
+                if st.button("📊 Ver Tabela Nutricional", 
+                           key=f"btn_nutri_fav_{prato['nome']}",
+                           type="primary",
+                           use_container_width=True):
+                    st.session_state.tabela_nutricional_ativa = prato['nome']
+                    st.rerun()
+                
+                # Controle de quantidade
+                quantidade_atual = st.session_state.carrinho.get(prato["nome"], 0)
+                
+                col1, col2, col3 = st.columns([1, 2, 1])
+                
+                with col1:
+                    if st.button("➖", key=f"fav_menos_{prato['nome']}", use_container_width=True, disabled=not disponivel):
+                        nova_quantidade = max(0, quantidade_atual - 1)
+                        atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                        st.rerun()
+                
+                with col2:
+                    if disponivel:
+                        st.markdown(f"<div style='text-align:center;padding:8px;background:#f5f5f5;border-radius:4px;font-weight:bold;'>{quantidade_atual}</div>", unsafe_allow_html=True)
+                    else:
+                        st.markdown(f"<div style='text-align:center;padding:8px;background:#ffcccc;border-radius:4px;font-weight:bold;color:#cc0000;'>INDISPONÍVEL</div>", unsafe_allow_html=True)
+                
+                with col3:
+                    if st.button("➕", key=f"fav_mais_{prato['nome']}", use_container_width=True, disabled=not disponivel):
+                        nova_quantidade = quantidade_atual + 1
+                        atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                        st.rerun()
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+else:
+    # Seção normal de produtos
+    for prato in [p for p in pratos if p["cat"] == st.session_state.categoria_atual]:
+        disponivel, ingrediente_faltante = verificar_disponibilidade_prato(prato)
         
-        # Imagem
-        caminho_imagem = os.path.join("images", prato["img"])
-        if os.path.exists(caminho_imagem):
-            st.image(caminho_imagem, use_container_width=True)
-        else:
-            st.image("https://via.placeholder.com/400x240/EA1D2C/white?text=Imagem+Indisponível", 
-                    use_container_width=True)
-        
-        # Informações com ingredientes
-        with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}", expanded=False):
-            st.write("**Ingredientes:**")
-            if prato.get('ingredientes'):
-                for ing in prato['ingredientes']:
-                    st.write(f"• {ing['nome']}")
+        with st.container():
+            # Card do produto
+            if not disponivel:
+                st.markdown('<div class="product-card" style="opacity:0.6;position:relative;">', unsafe_allow_html=True)
+                st.markdown(f'<div style="position:absolute;top:10px;left:10px;background:#EA1D2C;color:white;padding:4px 8px;border-radius:4px;font-size:0.8rem;z-index:10;">SEM {ingrediente_faltante.upper()}</div>', unsafe_allow_html=True)
             else:
-                st.write("• Ingredientes padrão")
-        
-        # Controle de quantidade
-        quantidade_atual = st.session_state.carrinho.get(prato["nome"], 0)
-        
-        col1, col2, col3 = st.columns([1, 2, 1])
-        
-        with col1:
-            if st.button("➖", key=f"menos_{prato['nome']}", use_container_width=True, disabled=not disponivel):
-                nova_quantidade = max(0, quantidade_atual - 1)
-                atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                st.markdown('<div class="product-card">', unsafe_allow_html=True)
+            
+            # Botão de favorito - AGORA FUNCIONAL
+            is_favorito = prato["nome"] in st.session_state.favoritos
+            btn_type = "secondary" if is_favorito else "primary"
+            btn_icon = "❤️" if is_favorito else "🤍"
+            
+            if st.button(btn_icon, 
+                       key=f"heart_{prato['nome']}",
+                       help="Adicionar aos favoritos" if not is_favorito else "Remover dos favoritos",
+                       type=btn_type):
+                toggle_favorito(prato["nome"])
                 st.rerun()
-        
-        with col2:
-            if disponivel:
-                st.markdown(f"<div style='text-align:center;padding:8px;background:#f5f5f5;border-radius:4px;font-weight:bold;'>{quantidade_atual}</div>", unsafe_allow_html=True)
+            
+            # Ajustar estilo do botão
+            st.markdown(f"""
+            <style>
+                [data-testid="baseButton-{btn_type}"][data-testid="baseButton-{btn_type}"] {{
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    background: white !important;
+                    color: {'#EA1D2C' if is_favorito else '#999'} !important;
+                    border-radius: 50% !important;
+                    width: 40px !important;
+                    height: 40px !important;
+                    min-width: 40px !important;
+                    padding: 0 !important;
+                    z-index: 100;
+                    border: none !important;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+                    font-size: 1.2rem !important;
+                }}
+                [data-testid="baseButton-{btn_type}"]:hover {{
+                    background: white !important;
+                    transform: scale(1.15);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+                    color: {'#c91a26' if is_favorito else '#666'} !important;
+                }}
+            </style>
+            """, unsafe_allow_html=True)
+            
+            # Imagem
+            caminho_imagem = os.path.join("images", prato["img"])
+            if os.path.exists(caminho_imagem):
+                st.image(caminho_imagem, use_container_width=True)
             else:
-                st.markdown(f"<div style='text-align:center;padding:8px;background:#ffcccc;border-radius:4px;font-weight:bold;color:#cc0000;'>INDISPONÍVEL</div>", unsafe_allow_html=True)
-        
-        with col3:
-            if st.button("➕", key=f"mais_{prato['nome']}", use_container_width=True, disabled=not disponivel):
-                nova_quantidade = quantidade_atual + 1
-                atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                st.image("https://via.placeholder.com/400x240/EA1D2C/white?text=Imagem+Indisponível", 
+                        use_container_width=True)
+            
+            # Informações com ingredientes
+            with st.expander(f"🍔 {prato['nome']} - R$ {prato['preco']:.2f}", expanded=False):
+                st.write("**Ingredientes:**")
+                if prato.get('ingredientes'):
+                    for ing in prato['ingredientes']:
+                        st.write(f"• {ing['nome']}")
+                else:
+                    st.write("• Ingredientes padrão")
+            
+            # Botão para ver tabela nutricional - CORRIGIDO
+            if st.button("📊 Ver Tabela Nutricional", 
+                       key=f"btn_nutri_{prato['nome']}",
+                       type="primary",
+                       use_container_width=True):
+                st.session_state.tabela_nutricional_ativa = prato['nome']
                 st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Controle de quantidade
+            quantidade_atual = st.session_state.carrinho.get(prato["nome"], 0)
+            
+            col1, col2, col3 = st.columns([1, 2, 1])
+            
+            with col1:
+                if st.button("➖", key=f"menos_{prato['nome']}", use_container_width=True, disabled=not disponivel):
+                    nova_quantidade = max(0, quantidade_atual - 1)
+                    atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                    st.rerun()
+            
+            with col2:
+                if disponivel:
+                    st.markdown(f"<div style='text-align:center;padding:8px;background:#f5f5f5;border-radius:4px;font-weight:bold;'>{quantidade_atual}</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(f"<div style='text-align:center;padding:8px;background:#ffcccc;border-radius:4px;font-weight:bold;color:#cc0000;'>INDISPONÍVEL</div>", unsafe_allow_html=True)
+            
+            with col3:
+                if st.button("➕", key=f"mais_{prato['nome']}", use_container_width=True, disabled=not disponivel):
+                    nova_quantidade = quantidade_atual + 1
+                    atualizar_item_carrinho(prato["nome"], nova_quantidade)
+                    st.rerun()
+            
+            st.markdown('</div>', unsafe_allow_html=True)
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown('</section>', unsafe_allow_html=True)
+
+# =============== EXIBIR TABELA NUTRICIONAL ===============
+if st.session_state.tabela_nutricional_ativa:
+    prato_nome = st.session_state.tabela_nutricional_ativa
+    
+    # Cabeçalho destacado
+    st.markdown("---")
+    col_title, col_close = st.columns([5, 1])
+    
+    with col_title:
+        st.markdown(f"## 📊 Tabela Nutricional - {prato_nome}")
+    
+    with col_close:
+        if st.button("✕ Fechar", key="btn_fechar_tabela", type="secondary"):
+            st.session_state.tabela_nutricional_ativa = None
+            st.rerun()
+    
+    # Linha divisória
+    st.markdown("---")
+    
+    # Exibir a tabela nutricional
+    exibir_tabela_nutricional(prato_nome)
+    
+    # Botão para fechar
+    if st.button("Fechar Tabela Nutricional", 
+                 key="btn_fechar_tabela2",
+                 type="primary",
+                 use_container_width=True):
+        st.session_state.tabela_nutricional_ativa = None
+        st.rerun()
+    
+    st.markdown("---")
 
 # =============== CARRINHO COM CHECKOUT COMPLETO ===============
 if st.session_state.carrinho:
@@ -558,8 +1112,6 @@ if st.session_state.carrinho:
             if st.button("🗑️ **Limpar Tudo**", use_container_width=True):
                 limpar_carrinho()
                 st.rerun()
-
-
 
 # =============== SOBRE NÓS ===============
 st.markdown("""
@@ -873,7 +1425,7 @@ st.markdown("""
 </a>
 """, unsafe_allow_html=True)
 
-# =============== FOOTER ORIGINAL ===============
+# =============== FOOTER ===============
 st.markdown("""
 <style>
     .footer::before {content:'';position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,#EA1D2C,#ff4757);}
