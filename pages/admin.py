@@ -1249,69 +1249,6 @@ else:
                         for ing in ingredientes_selecionados:
                             st.write(f"- {ing['nome']} ({ing['quantidade']} {next((i['unidade'] for i in ingredientes if i['nome'] == ing['nome']), 'un')})")
                 
-                # =============== NOVA SEÇÃO: TABELA NUTRICIONAL ===============
-                st.markdown("---")
-                
-                # Checkbox para adicionar tabela nutricional
-                adicionar_tabela = st.checkbox(
-                    "📊 Adicionar Tabela Nutricional para este prato",
-                    value=st.session_state.get('adicionar_tabela_nutricional', False),
-                    key="chk_tabela_nutricional"
-                )
-                
-                # Inicializar variáveis de tabela nutricional
-                calorias = 0
-                proteinas = 0.0
-                carboidratos = 0.0
-                gorduras = 0.0
-                gorduras_saturadas = 0.0
-                fibra = 0.0
-                sodio = 0
-                descricao_nutricional = ""
-                alergenicos_selecionados = []
-                
-                if adicionar_tabela:
-                    st.session_state.adicionar_tabela_nutricional = True
-                    
-                    st.subheader("🍎 Informações Nutricionais")
-                    
-                    col_nut1, col_nut2 = st.columns(2)
-                    
-                    with col_nut1:
-                        calorias = st.number_input("Calorias (kcal)", min_value=0, value=0, step=10, key="calorias_input")
-                        proteinas = st.number_input("Proteínas (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="proteinas_input")
-                        carboidratos = st.number_input("Carboidratos (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="carboidratos_input")
-                        gorduras = st.number_input("Gorduras Totais (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="gorduras_input")
-                    
-                    with col_nut2:
-                        gorduras_saturadas = st.number_input("Gorduras Saturadas (g)", min_value=0.0, value=0.0, step=0.5, format="%.1f", key="gord_sat_input")
-                        fibra = st.number_input("Fibra Alimentar (g)", min_value=0.0, value=0.0, step=0.5, format="%.1f", key="fibra_input")
-                        sodio = st.number_input("Sódio (mg)", min_value=0, value=0, step=10, key="sodio_input")
-                    
-                    # Descrição e alérgenos
-                    descricao_nutricional = st.text_area(
-                        "Descrição Nutricional",
-                        placeholder="Descreva o prato e suas características nutricionais...",
-                        height=80,
-                        key="desc_nutricional_input"
-                    )
-                    
-                    # Alérgenos
-                    st.write("**Alérgenos:**")
-                    alergenicos_opcoes = [
-                        "Glúten", "Lactose", "Leite", "Ovos", "Soja", "Nozes",
-                        "Amendoim", "Peixes", "Crustáceos", "Moluscos", "Sésamo",
-                        "Sulfitos", "Aipo", "Mostarda"
-                    ]
-                    
-                    cols_alerg = st.columns(4)
-                    for i, alergenico in enumerate(alergenicos_opcoes):
-                        with cols_alerg[i % 4]:
-                            if st.checkbox(alergenico, key=f"alerg_{alergenico}"):
-                                alergenicos_selecionados.append(alergenico)
-                else:
-                    st.session_state.adicionar_tabela_nutricional = False
-                
                 # Botão de submit
                 submitted = st.form_submit_button("✅ Cadastrar Prato", type="primary")
                 
@@ -1354,43 +1291,8 @@ else:
                             with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
                                 json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
                             
-                            # =============== SALVAR TABELA NUTRICIONAL SE SOLICITADO E PREENCHIDA ===============
-                            if adicionar_tabela:
-                                # Verificar se pelo menos um campo nutricional foi preenchido
-                                campos_preenchidos = any([
-                                    calorias > 0,
-                                    proteinas > 0,
-                                    carboidratos > 0,
-                                    gorduras > 0,
-                                    gorduras_saturadas > 0,
-                                    fibra > 0,
-                                    sodio > 0,
-                                    descricao_nutricional.strip() != ""
-                                ])
-                                
-                                if campos_preenchidos or alergenicos_selecionados:
-                                    dados_nutricionais = {
-                                        "calorias": calorias,
-                                        "proteinas": proteinas,
-                                        "carboidratos": carboidratos,
-                                        "gorduras": gorduras,
-                                        "gorduras_saturadas": gorduras_saturadas,
-                                        "fibra": fibra,
-                                        "sodio": sodio,
-                                        "descricao": descricao_nutricional if descricao_nutricional.strip() else f"{nome} - {novo_prato.get('cat', 'prato')}",
-                                        "alergenicos": alergenicos_selecionados
-                                    }
-                                    
-                                    if salvar_informacoes_nutricionais(nome, dados_nutricionais):
-                                        st.success(f"✅ Tabela nutricional salva para '{nome}'")
-                                else:
-                                    st.warning("⚠️ Tabela nutricional não foi salva porque nenhum dado foi preenchido.")
-                            
                             st.success(f"🎉 Prato '{nome}' cadastrado com sucesso!")
                             st.balloons()
-                            
-                            # Limpar o estado
-                            st.session_state.adicionar_tabela_nutricional = False
             
             # Lista de pratos com ingredientes
             st.subheader("📋 Pratos Cadastrados")
