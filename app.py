@@ -1,4 +1,4 @@
-# app.py - VERSÃO COM TABELA NUTRICIONAL CORRIGIDA
+# app.py - VERSÃO COM TABELA NUTRICIONAL PERSONALIZADA
 import streamlit as st
 import os
 import json
@@ -84,9 +84,44 @@ def carregar_pratos():
 
 pratos = carregar_pratos()
 
-# =============== DADOS NUTRICIONAIS ===============
+# =============== FUNÇÕES PARA TABELA NUTRICIONAL PERSONALIZADA ===============
+def salvar_informacoes_nutricionais(prato_nome, dados_nutricionais):
+    """Salva informações nutricionais em um arquivo JSON"""
+    arquivo_nutricional = "tabela_nutricional.json"
+    
+    try:
+        if os.path.exists(arquivo_nutricional):
+            with open(arquivo_nutricional, "r", encoding="utf-8") as f:
+                tabela_existente = json.load(f)
+        else:
+            tabela_existente = {}
+        
+        # Adicionar ou atualizar os dados
+        tabela_existente[prato_nome] = dados_nutricionais
+        
+        with open(arquivo_nutricional, "w", encoding="utf-8") as f:
+            json.dump(tabela_existente, f, ensure_ascii=False, indent=2)
+        
+        return True
+    except Exception as e:
+        st.error(f"Erro ao salvar dados nutricionais: {e}")
+        return False
+
 def obter_informacoes_nutricionais(prato_nome):
-    """Retorna informações nutricionais para cada prato"""
+    """Retorna informações nutricionais para cada prato - COM SUPORTE PARA DADOS PERSONALIZADOS"""
+    # Primeiro tenta carregar do arquivo personalizado
+    arquivo_nutricional = "tabela_nutricional.json"
+    
+    if os.path.exists(arquivo_nutricional):
+        try:
+            with open(arquivo_nutricional, "r", encoding="utf-8") as f:
+                tabela_personalizada = json.load(f)
+                if prato_nome in tabela_personalizada:
+                    return tabela_personalizada[prato_nome]
+        except:
+            pass
+    
+    # Se não encontrar, usa a tabela padrão (fallback)
     tabela_nutricional = {
         "Burger Classic": {
             "calorias": 680,
@@ -1125,7 +1160,7 @@ st.markdown("""
                 <p style="margin-bottom:25px;">Nossa missão é proporcionar momentos especiais através de hambúrgueres excepcionais, com atendimento diferenciado e ambiente acolhedor.</p>
             </div>
             <div style="border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.15);">
-                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228762408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3838.683491753089!2d-48.07228772408775!3d-15.820634523603314!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x935a3391b366fc47%3A0x88c16b784a3ad98f!2sSenai%20Taguatinga!5e0!3m2!1spt-BR!2sbr" width="100%" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
             </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:60px;">

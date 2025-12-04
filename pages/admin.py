@@ -1,4 +1,4 @@
-# pages/admin.py - PAINEL ADMIN COM DESIGN MELHORADO
+# pages/admin.py - PAINEL ADMIN - GESTÃO DE PRATOS, INGREDIENTES E PEDIDOS
 import streamlit as st
 import json
 import os
@@ -14,6 +14,7 @@ ESTOQUE_FILE = os.path.join(BASE_DIR, "estoque.json")
 INGREDIENTES_FILE = os.path.join(BASE_DIR, "ingredientes.json")
 PEDIDOS_FILE = os.path.join(BASE_DIR, "pedidos.json")
 IMAGES_DIR = os.path.join(BASE_DIR, "images")
+TABELA_NUTRICIONAL_FILE = os.path.join(BASE_DIR, "tabela_nutricional.json")
 
 # =============== INICIALIZAÇÃO DE ESTADOS ===============
 if "admin_logado" not in st.session_state:
@@ -32,6 +33,72 @@ if "novo_ing_nome" not in st.session_state:
     st.session_state.novo_ing_nome = ""
 if "novo_ing_qtd" not in st.session_state:
     st.session_state.novo_ing_qtd = 1
+if "adicionar_tabela_nutricional" not in st.session_state:
+    st.session_state.adicionar_tabela_nutricional = False
+if "editando_tabela_nutricional" not in st.session_state:
+    st.session_state.editando_tabela_nutricional = False
+
+# =============== FUNÇÕES PARA TABELA NUTRICIONAL ===============
+def salvar_informacoes_nutricionais(prato_nome, dados_nutricionais):
+    """Salva informações nutricionais em um arquivo JSON - COM VALIDAÇÃO"""
+    # Validar se há dados significativos para salvar
+    if (dados_nutricionais.get('calorias', 0) == 0 and 
+        dados_nutricionais.get('proteinas', 0) == 0 and
+        dados_nutricionais.get('carboidratos', 0) == 0 and
+        dados_nutricionais.get('gorduras', 0) == 0 and
+        dados_nutricionais.get('gorduras_saturadas', 0) == 0 and
+        dados_nutricionais.get('fibra', 0) == 0 and
+        dados_nutricionais.get('sodio', 0) == 0 and
+        not dados_nutricionais.get('alergenicos') and
+        ("não disponíveis" in dados_nutricionais.get('descricao', '').lower() or 
+         not dados_nutricionais.get('descricao', '').strip())):
+        # Não salvar tabelas vazias
+        return False
+    
+    try:
+        if os.path.exists(TABELA_NUTRICIONAL_FILE):
+            with open(TABELA_NUTRICIONAL_FILE, "r", encoding="utf-8") as f:
+                tabela_existente = json.load(f)
+        else:
+            tabela_existente = {}
+        
+        # Adicionar ou atualizar os dados
+        tabela_existente[prato_nome] = dados_nutricionais
+        
+        with open(TABELA_NUTRICIONAL_FILE, "w", encoding="utf-8") as f:
+            json.dump(tabela_existente, f, ensure_ascii=False, indent=2)
+        
+        return True
+    except Exception as e:
+        st.error(f"Erro ao salvar dados nutricionais: {e}")
+        return False
+
+def obter_informacoes_nutricionais(prato_nome):
+    """Retorna informações nutricionais para cada prato - RETORNA NONE SE VAZIO"""
+    try:
+        if os.path.exists(TABELA_NUTRICIONAL_FILE):
+            with open(TABELA_NUTRICIONAL_FILE, "r", encoding="utf-8") as f:
+                tabela_personalizada = json.load(f)
+                if prato_nome in tabela_personalizada:
+                    # Verificar se tem dados válidos (não é uma tabela vazia)
+                    dados = tabela_personalizada[prato_nome]
+                    # Se todos os valores forem zero e não tiver descrição/alérgenos, considerar vazio
+                    if (dados.get('calorias', 0) == 0 and 
+                        dados.get('proteinas', 0) == 0 and
+                        dados.get('carboidratos', 0) == 0 and
+                        dados.get('gorduras', 0) == 0 and
+                        dados.get('gorduras_saturadas', 0) == 0 and
+                        dados.get('fibra', 0) == 0 and
+                        dados.get('sodio', 0) == 0 and
+                        not dados.get('alergenicos') and
+                        "não disponíveis" in dados.get('descricao', '').lower()):
+                        return None
+                    return dados
+    except:
+        pass
+    
+    # Retorna None se não encontrar dados válidos
+    return None
 
 # =============== FUNÇÕES DE PEDIDOS ===============
 def carregar_pedidos():
@@ -208,66 +275,129 @@ def salvar_pratos(pratos_atualizados):
     with open(PRATOS_FILE, "w", encoding="utf-8") as f:
         json.dump(pratos_atualizados, f, ensure_ascii=False, indent=2)
 
-# CSS PROFISSIONAL COM DESIGN MELHORADO E CORES CORRIGIDAS
+# CSS CORRIGIDO - TEXTO PRETO NOS SELECTS
 st.markdown("""
 <style>
-    /* FUNDO PROFISSIONAL COM PADRÃO SUTIL */
+    /* FUNDO PROFISSIONAL */
     [data-testid="stAppViewContainer"] {
         background: 
             linear-gradient(135deg, #0f0f0f 0%, #1a0f0f 50%, #0f0f0f 100%),
             radial-gradient(circle at 20% 80%, rgba(200, 40, 60, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(200, 40, 60, 0.08) 0%, transparent 50%),
-            repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.01) 10px, rgba(255,255,255,0.01) 20px) !important;
+            radial-gradient(circle at 80% 20%, rgba(200, 40, 60, 0.08) 0%, transparent 50%) !important;
         background-attachment: fixed !important;
     }
     
-    /* CORREÇÃO ESPECÍFICA PARA SELECT BOXES - TEXTO PRETO LEGÍVEL */
-    [data-baseweb="select"] > div {
+    /* =============== CORREÇÕES CRÍTICAS PARA SELECT BOXES =============== */
+    
+    /* 1. CONTAINER PRINCIPAL DO SELECT - TEXTO PRETO */
+    .stSelectbox > div > div {
         background-color: white !important;
         color: #000000 !important;
     }
     
+    /* 2. TEXTO DO SELECT QUANDO FECHADO - PRETO */
+    [data-baseweb="select"] > div > div > div > div {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    /* 3. INPUT DO SELECT - PRETO */
     [data-baseweb="select"] input {
         color: #000000 !important;
         background-color: white !important;
     }
     
-    [data-baseweb="select"] [role="listbox"] {
-        background-color: white !important;
-        color: #000000 !important;
-    }
-    
-    [data-baseweb="select"] [role="listbox"] div {
+    /* 4. DROPDOWN (LISTBOX) - TEXTO PRETO */
+    [data-baseweb="popover"] div,
+    [data-baseweb="popover"] span,
+    [data-baseweb="popover"] p {
         color: #000000 !important;
         background-color: white !important;
     }
     
-    [data-baseweb="select"] [role="listbox"] div:hover {
+    /* 5. ITENS DO DROPDOWN - PRETO */
+    [role="listbox"] div,
+    [role="listbox"] li,
+    [role="option"] {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    /* 6. ITENS DO DROPDOWN AO PASSAR MOUSE - PRETO */
+    [role="listbox"] div:hover,
+    [role="option"]:hover {
+        color: #000000 !important;
         background-color: #f0f0f0 !important;
+    }
+    
+    /* 7. CONTEÚDO DO MARKDOWN DENTRO DO SELECT - PRETO */
+    [data-baseweb="select"] [data-testid="stMarkdownContainer"],
+    [data-baseweb="select"] [data-testid="stMarkdownContainer"] p,
+    [data-baseweb="select"] [data-testid="stMarkdownContainer"] span {
         color: #000000 !important;
     }
     
-    [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
-        color: #000000 !important;
-    }
-    
-    /* TEXTO DOS LABELS EM BRANCO */
+    /* 8. LABEL DO SELECT - BRANCO (como deve ser) */
+    .stSelectbox label,
     [data-baseweb="select"] label {
         color: white !important;
         font-weight: 600 !important;
     }
     
-    /* BOTÕES DAS SELECTBOXES */
-    [data-baseweb="select"] [data-baseweb="button"] {
-        background-color: white !important;
-        color: #000000 !important;
-    }
-    
+    /* 9. SETA DO SELECT - PRETO */
     [data-baseweb="select"] svg {
         fill: #000000 !important;
     }
-
-    /* HEADER COM DESIGN MELHORADO */
+    
+    /* 10. BOTÃO DO SELECT - PRETO */
+    [data-baseweb="select"] button {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    /* =============== CORREÇÕES PARA INPUTS NUMÉRICOS =============== */
+    .stNumberInput input {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    .stTextInput input {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    .stTextArea textarea {
+        color: #000000 !important;
+        background-color: white !important;
+    }
+    
+    /* =============== CORREÇÕES PARA RADIO BUTTONS (CATEGORIAS) =============== */
+    /* Radio buttons devem ter texto BRANCO (são diferentes dos selects) */
+    .stRadio [data-testid="stMarkdownContainer"],
+    .stRadio [data-testid="stMarkdownContainer"] p,
+    .stRadio [data-testid="stMarkdownContainer"] span,
+    .stRadio label {
+        color: white !important;
+    }
+    
+    /* =============== CORREÇÕES PARA CHECKBOXES =============== */
+    .stCheckbox [data-testid="stMarkdownContainer"],
+    .stCheckbox [data-testid="stMarkdownContainer"] p,
+    .stCheckbox [data-testid="stMarkdownContainer"] span,
+    .stCheckbox label {
+        color: white !important;
+    }
+    
+    /* =============== TEXTO GERAL - MANTÉM BRANCO =============== */
+    /* Só textos que NÃO são inputs/selects devem ser brancos */
+    h1, h2, h3, h4, h5, h6, 
+    .stExpander [data-testid="stMarkdownContainer"],
+    .stAlert [data-testid="stMarkdownContainer"],
+    p:not([class*="st"]):not([data-testid*="Input"]) {
+        color: white !important;
+    }
+    
+    /* =============== HEADER E ESTILOS VISUAIS (MANTIDOS) =============== */
     .main-header {
         background: linear-gradient(135deg, rgba(180, 40, 60, 0.85) 0%, rgba(160, 35, 55, 0.9) 100%) !important;
         padding: 2rem;
@@ -276,42 +406,20 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.15);
         box-shadow: 0 12px 40px rgba(0,0,0,0.4);
         backdrop-filter: blur(15px);
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .main-header::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-        opacity: 0.3;
-    }
-    
-    /* ANIMAÇÃO NO TÍTULO */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
     }
     
     .animated-title {
-        animation: fadeInUp 0.8s ease-out;
-        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        color: white !important;
+        margin: 0;
+        font-size: 2.8rem;
+        font-weight: 800;
     }
     
     .animated-subtitle {
-        animation: fadeInUp 1s ease-out;
-        animation-delay: 0.2s;
-        animation-fill-mode: both;
+        color: rgba(255,255,255,0.9) !important;
+        margin: 12px 0 0 0;
+        font-size: 1.3rem;
+        font-weight: 500;
     }
     
     /* BOTÕES DO HEADER */
@@ -368,93 +476,6 @@ st.markdown("""
         backdrop-filter: blur(15px);
     }
     
-    /* TEXTO BRANCO EM TODOS OS ELEMENTOS */
-    .stApp, h1, h2, h3, h4, h5, h6, p, div, span, label {
-        color: white !important;
-    }
-    
-    /* BOTÃO "Adicionar Ingrediente" COM TEXTO PRETO - CORREÇÃO ESPECÍFICA */
-    div[data-testid="stForm"] button[kind="secondaryFormSubmit"] {
-        color: #000000 !important;
-        background: #FFFFFF !important;
-        border: 2px solid #b4283c !important;
-        font-weight: bold !important;
-    }
-    
-    div[data-testid="stForm"] button[kind="secondaryFormSubmit"]:hover {
-        background: #b4283c !important;
-        color: white !important;
-        border: 2px solid #b4283c !important;
-    }
-    
-    /* BOTÃO "Cadastrar Prato" COM TEXTO BRANCO */
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"] {
-        color: white !important;
-        background: linear-gradient(135deg, #b4283c 0%, #a02335 100%) !important;
-        border: none !important;
-        font-weight: bold !important;
-    }
-    
-    div[data-testid="stForm"] button[kind="primaryFormSubmit"]:hover {
-        background: linear-gradient(135deg, #a02335 0%, #8c1e2e 100%) !important;
-        color: white !important;
-    }
-    
-    /* LABEL "Imagem do Prato" EM BRANCO */
-    .stFileUploader label {
-        color: white !important;
-        font-weight: 600 !important;
-        font-size: 1rem !important;
-    }
-    
-    /* TEXTO DO FILE UPLOADER EM PRETO */
-    [data-testid="stFileUploader"] p {
-        color: #000000 !important;
-        font-weight: 500 !important;
-    }
-    
-    [data-testid="stFileUploader"] small {
-        color: #666666 !important;
-    }
-    
-    /* BOTÃO DE UPLOAD EM PRETO */
-    [data-testid="stFileUploader"] button {
-        color: #000000 !important;
-        background: #f8f9fa !important;
-        border: 1px solid #ced4da !important;
-        font-weight: 500 !important;
-    }
-    
-    [data-testid="stFileUploader"] button:hover {
-        background: #e9ecef !important;
-        color: #000000 !important;
-    }
-    
-    /* ÁREA DE DROP EM PRETO */
-    [data-testid="stFileUploader"] > div > div {
-        background: rgba(255, 255, 255, 0.95) !important;
-        border: 2px dashed #b4283c !important;
-        color: #000000 !important;
-    }
-    
-    /* BOTÕES PRINCIPAIS */
-    .stButton > button {
-        background: linear-gradient(135deg, #b4283c 0%, #a02335 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        padding: 12px 24px !important;
-        box-shadow: 0 6px 20px rgba(180, 40, 60, 0.25) !important;
-        transition: all 0.3s ease !important;
-    }
-    
-    .stButton > button:hover {
-        background: linear-gradient(135deg, #a02335 0%, #8c1e2e 100%) !important;
-        transform: translateY(-3px) !important;
-        box-shadow: 0 8px 25px rgba(180, 40, 60, 0.35) !important;
-    }
-    
     /* TABS ESTILIZADAS */
     .stTabs [data-baseweb="tab-list"] {
         background: rgba(255, 255, 255, 0.08) !important;
@@ -489,24 +510,22 @@ st.markdown("""
         box-shadow: 0 12px 40px rgba(0,0,0,0.2);
     }
     
-    /* INPUTS - TEXTO PRETO */
-    .stTextInput input, .stNumberInput input, .stSelectbox select {
-        color: #000000 !important;
-        background: white !important;
-        border: 1px solid #e0e0e0 !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
+    /* BOTÕES PRINCIPAIS */
+    .stButton > button {
+        background: linear-gradient(135deg, #b4283c 0%, #a02335 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        padding: 12px 24px !important;
+        box-shadow: 0 6px 20px rgba(180, 40, 60, 0.25) !important;
+        transition: all 0.3s ease !important;
     }
     
-    /* BOTÕES + E - VISÍVEIS */
-    .stNumberInput button {
-        color: #000000 !important;
-        background: #f8f9fa !important;
-        border: 1px solid #ced4da !important;
-    }
-    
-    .stNumberInput button:hover {
-        background: #e9ecef !important;
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #a02335 0%, #8c1e2e 100%) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 25px rgba(180, 40, 60, 0.35) !important;
     }
     
     /* EXPANDER */
@@ -538,16 +557,6 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* CARDS DE MÉTRICA */
-    [data-testid="stMetric"] {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border-radius: 18px;
-        padding: 1.8rem;
-        border: 1px solid rgba(255,255,255,0.1);
-        backdrop-filter: blur(15px);
-        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-    }
-    
     /* ALERTAS */
     .stAlert {
         background: rgba(255, 255, 255, 0.1) !important;
@@ -555,12 +564,6 @@ st.markdown("""
         border-radius: 12px;
         backdrop-filter: blur(15px);
         border-left: 5px solid #b4283c;
-    }
-    
-    /* PROGRESS BAR */
-    .stProgress > div > div > div {
-        background: linear-gradient(90deg, #b4283c 0%, #d6455c 100%) !important;
-        border-radius: 12px;
     }
     
     /* DIVIDER */
@@ -585,22 +588,6 @@ st.markdown("""
         overflow: hidden;
     }
     
-    .login-box::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(180, 40, 60, 0.15) 0%, transparent 70%);
-        animation: float 8s ease-in-out infinite;
-    }
-    
-    @keyframes float {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-25px) rotate(180deg); }
-    }
-    
     /* CARDS DE PEDIDOS */
     .pedido-card {
         background: rgba(255, 255, 255, 0.08) !important;
@@ -612,180 +599,7 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.12);
         box-shadow: 0 8px 32px rgba(0,0,0,0.15);
     }
-    
-    .status-recebido { border-left-color: #ff6b6b !important; }
-    .status-preparando { border-left-color: #feca57 !important; }
-    .status-pronto { border-left-color: #1dd1a1 !important; }
-    .status-entregue { border-left-color: #54a0ff !important; }
-    .status-cancelado { border-left-color: #576574 !important; }
-</style>
-""", unsafe_allow_html=True)
-
-# CSS PROFISSIONAL COM CORREÇÃO DIRETA DOS SELECT BOXES
-st.markdown("""
-<style>
-    /* FUNDO PROFISSIONAL */
-    [data-testid="stAppViewContainer"] {
-        background: 
-            linear-gradient(135deg, #0f0f0f 0%, #1a0f0f 50%, #0f0f0f 100%),
-            radial-gradient(circle at 20% 80%, rgba(200, 40, 60, 0.08) 0%, transparent 50%),
-            radial-gradient(circle at 80% 20%, rgba(200, 40, 60, 0.08) 0%, transparent 50%) !important;
-        background-attachment: fixed !important;
-    }
-    
-    /* CORREÇÃO RADICAL PARA SELECT BOXES */
-    .stSelectbox > div > div {
-        background-color: white !important;
-    }
-    
-    .stSelectbox > div > div > div {
-        color: #000000 !important;
-        background-color: white !important;
-    }
-    
-    .stSelectbox input {
-        color: #000000 !important;
-        background-color: white !important;
-    }
-    
-    /* LISTA DROPDOWN */
-    [data-baseweb="popover"] {
-        background-color: white !important;
-    }
-    
-    [data-baseweb="popover"] div {
-        color: #000000 !important;
-        background-color: white !important;
-    }
-    
-    [data-baseweb="popover"] div:hover {
-        background-color: #f0f0f0 !important;
-        color: #000000 !important;
-    }
-    
-    /* LABEL DOS SELECTBOX */
-    .stSelectbox label {
-        color: white !important;
-        font-weight: 600 !important;
-    }
-    
-    /* SETA DO SELECTBOX */
-    [data-baseweb="select"] svg {
-        fill: #000000 !important;
-    }
-
-    /* HEADER */
-    .main-header {
-        background: linear-gradient(135deg, rgba(180, 40, 60, 0.85) 0%, rgba(160, 35, 55, 0.9) 100%) !important;
-        padding: 2rem;
-        border-radius: 20px;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255,255,255,0.15);
-        box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-        backdrop-filter: blur(15px);
-    }
-    
-    /* TEXTO BRANCO GERAL */
-    .stApp, h1, h2, h3, h4, h5, h6, p, div, span {
-        color: white !important;
-    }
-    
-    /* BOTÕES */
-    .stButton > button {
-        background: linear-gradient(135deg, #b4283c 0%, #a02335 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        padding: 12px 24px !important;
-    }
-    
-    /* TABS */
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border-radius: 12px;
-        padding: 6px;
-        gap: 6px;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        background: transparent !important;
-        color: white !important;
-        border-radius: 10px;
-        padding: 12px 24px;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #b4283c 0%, #a02335 100%) !important;
-        color: white !important;
-    }
-    
-    /* FORMULÁRIOS */
-    .stForm {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border-radius: 18px;
-        padding: 2rem;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    
-    /* INPUTS */
-    .stTextInput input, .stNumberInput input {
-        color: #000000 !important;
-        background: white !important;
-        border: 1px solid #e0e0e0 !important;
-        border-radius: 10px !important;
-        padding: 12px !important;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# CSS ESPECÍFICO PARA CORRIGIR O TEXTO SELECIONADO NOS SELECT BOXES
-st.markdown("""
-<style>
-    /* CORREÇÃO ESPECÍFICA PARA O TEXTO SELECIONADO NOS SELECT BOXES */
-    [data-baseweb="select"] > div > div > div {
-        color: #000000 !important;
-        background-color: white !important;
-    }
-    
-    [data-baseweb="select"] [data-testid="stMarkdownContainer"] p {
-        color: #000000 !important;
-        font-weight: 500 !important;
-    }
-    
-    [data-baseweb="select"] [data-testid="stMarkdownContainer"] {
-        color: #000000 !important;
-    }
-    
-    /* CORREÇÃO PARA O PLACEHOLDER/TEXTO DO SELECT */
-    [data-baseweb="select"] input::placeholder {
-        color: #666666 !important;
-    }
-    
-    [data-baseweb="select"] input {
-        color: #000000 !important;
-    }
-    
-    /* CORREÇÃO PARA O CONTAINER PRINCIPAL DO SELECT */
-    .stSelectbox > div > div {
-        background-color: white !important;
-        border: 1px solid #e0e0e0 !important;
-        border-radius: 8px !important;
-    }
-    
-    .stSelectbox > div > div:hover {
-        border-color: #b4283c !important;
-    }
-    
-    /* GARANTIR QUE TODOS OS ELEMENTOS DO SELECT TENHAM CORRETA */
-    [data-baseweb="select"] * {
-        color: #000000 !important;
-    }
-    
-    /* CORREÇÃO ESPECÍFICA PARA O TEXTO QUANDO ESTÁ FECHADO */
-    [data-baseweb="select"] > div > div > div > div {
-        color: #000000 !important;
-    }
+            
 </style>
 """, unsafe_allow_html=True)
 
@@ -1065,6 +879,197 @@ else:
             else:
                 st.warning("⚠️ Adicione pelo menos um ingrediente ao prato.")
             
+            # =============== SEÇÃO: TABELA NUTRICIONAL (PARA EDIÇÃO) ===============
+            st.subheader("📊 Tabela Nutricional")
+            
+            # Carregar dados existentes se houver
+            dados_nutricionais_existentes = obter_informacoes_nutricionais(prato_editando['nome'])
+            
+            editar_tabela_nutricional = st.checkbox(
+                "Editar tabela nutricional",
+                value=st.session_state.get('editando_tabela_nutricional', False),
+                key="chk_editar_tabela"
+            )
+            
+            if editar_tabela_nutricional:
+                st.session_state.editando_tabela_nutricional = True
+                
+                # Inicializar valores com dados existentes ou zeros
+                calorias_existentes = dados_nutricionais_existentes.get('calorias', 0) if dados_nutricionais_existentes else 0
+                proteinas_existentes = dados_nutricionais_existentes.get('proteinas', 0.0) if dados_nutricionais_existentes else 0.0
+                carboidratos_existentes = dados_nutricionais_existentes.get('carboidratos', 0.0) if dados_nutricionais_existentes else 0.0
+                gorduras_existentes = dados_nutricionais_existentes.get('gorduras', 0.0) if dados_nutricionais_existentes else 0.0
+                gorduras_saturadas_existentes = dados_nutricionais_existentes.get('gorduras_saturadas', 0.0) if dados_nutricionais_existentes else 0.0
+                fibra_existentes = dados_nutricionais_existentes.get('fibra', 0.0) if dados_nutricionais_existentes else 0.0
+                sodio_existentes = dados_nutricionais_existentes.get('sodio', 0) if dados_nutricionais_existentes else 0
+                descricao_existente = dados_nutricionais_existentes.get('descricao', '') if dados_nutricionais_existentes else ''
+                alergenicos_existentes = dados_nutricionais_existentes.get('alergenicos', []) if dados_nutricionais_existentes else []
+                
+                col_nut1, col_nut2 = st.columns(2)
+                
+                with col_nut1:
+                    calorias = st.number_input(
+                        "Calorias (kcal)", 
+                        min_value=0, 
+                        value=calorias_existentes, 
+                        step=10,
+                        key="edt_calorias"
+                    )
+                    proteinas = st.number_input(
+                        "Proteínas (g)", 
+                        min_value=0.0, 
+                        value=proteinas_existentes, 
+                        step=1.0, 
+                        format="%.1f",
+                        key="edt_proteinas"
+                    )
+                    carboidratos = st.number_input(
+                        "Carboidratos (g)", 
+                        min_value=0.0, 
+                        value=carboidratos_existentes, 
+                        step=1.0, 
+                        format="%.1f",
+                        key="edt_carboidratos"
+                    )
+                    gorduras = st.number_input(
+                        "Gorduras Totais (g)", 
+                        min_value=0.0, 
+                        value=gorduras_existentes, 
+                        step=1.0, 
+                        format="%.1f",
+                        key="edt_gorduras"
+                    )
+                
+                with col_nut2:
+                    gorduras_saturadas = st.number_input(
+                        "Gorduras Saturadas (g)", 
+                        min_value=0.0, 
+                        value=gorduras_saturadas_existentes, 
+                        step=0.5, 
+                        format="%.1f",
+                        key="edt_gord_sat"
+                    )
+                    fibra = st.number_input(
+                        "Fibra Alimentar (g)", 
+                        min_value=0.0, 
+                        value=fibra_existentes, 
+                        step=0.5, 
+                        format="%.1f",
+                        key="edt_fibra"
+                    )
+                    sodio = st.number_input(
+                        "Sódio (mg)", 
+                        min_value=0, 
+                        value=sodio_existentes, 
+                        step=10,
+                        key="edt_sodio"
+                    )
+                
+                # Descrição
+                descricao_nutricional = st.text_area(
+                    "Descrição Nutricional",
+                    value=descricao_existente,
+                    height=80,
+                    key="edt_desc_nutricional"
+                )
+                
+                # Alérgenos
+                st.write("**Alérgenos:**")
+                alergenicos_opcoes = [
+                    "Glúten", "Lactose", "Leite", "Ovos", "Soja", "Nozes",
+                    "Amendoim", "Peixes", "Crustáceos", "Moluscos", "Sésamo",
+                    "Sulfitos", "Aipo", "Mostarda"
+                ]
+                
+                novos_alergenicos = []
+                
+                cols_alerg = st.columns(4)
+                for i, alergenico in enumerate(alergenicos_opcoes):
+                    with cols_alerg[i % 4]:
+                        if st.checkbox(
+                            alergenico, 
+                            value=alergenico in alergenicos_existentes,
+                            key=f"edt_alerg_{alergenico}"
+                        ):
+                            novos_alergenicos.append(alergenico)
+                
+                # Botão para salvar tabela nutricional separadamente
+                col_btn_salvar, col_btn_limpar = st.columns(2)
+                with col_btn_salvar:
+                    if st.button("💾 Salvar Tabela Nutricional", key="btn_salvar_tabela", use_container_width=True):
+                        # Verificar se há dados para salvar
+                        campos_preenchidos = any([
+                            calorias > 0,
+                            proteinas > 0,
+                            carboidratos > 0,
+                            gorduras > 0,
+                            gorduras_saturadas > 0,
+                            fibra > 0,
+                            sodio > 0,
+                            descricao_nutricional.strip() != ""
+                        ])
+                        
+                        if campos_preenchidos or novos_alergenicos:
+                            dados_nutricionais = {
+                                "calorias": calorias,
+                                "proteinas": proteinas,
+                                "carboidratos": carboidratos,
+                                "gorduras": gorduras,
+                                "gorduras_saturadas": gorduras_saturadas,
+                                "fibra": fibra,
+                                "sodio": sodio,
+                                "descricao": descricao_nutricional if descricao_nutricional.strip() else f"{prato_editando['nome']} - {prato_editando.get('cat', 'prato')}",
+                                "alergenicos": novos_alergenicos
+                            }
+                            
+                            if salvar_informacoes_nutricionais(prato_editando['nome'], dados_nutricionais):
+                                st.success("✅ Tabela nutricional atualizada!")
+                                st.rerun()
+                        else:
+                            # Se não há dados, remover a tabela nutricional
+                            if dados_nutricionais_existentes:
+                                try:
+                                    if os.path.exists(TABELA_NUTRICIONAL_FILE):
+                                        with open(TABELA_NUTRICIONAL_FILE, "r", encoding="utf-8") as f:
+                                            tabela_existente = json.load(f)
+                                        if prato_editando['nome'] in tabela_existente:
+                                            del tabela_existente[prato_editando['nome']]
+                                        with open(TABELA_NUTRICIONAL_FILE, "w", encoding="utf-8") as f:
+                                            json.dump(tabela_existente, f, ensure_ascii=False, indent=2)
+                                        st.info("🗑️ Tabela nutricional removida (não havia dados)")
+                                        st.rerun()
+                                except:
+                                    pass
+                
+                with col_btn_limpar:
+                    if st.button("🗑️ Remover Tabela", key="btn_remover_tabela", use_container_width=True):
+                        if dados_nutricionais_existentes:
+                            try:
+                                if os.path.exists(TABELA_NUTRICIONAL_FILE):
+                                    with open(TABELA_NUTRICIONAL_FILE, "r", encoding="utf-8") as f:
+                                        tabela_existente = json.load(f)
+                                    if prato_editando['nome'] in tabela_existente:
+                                        del tabela_existente[prato_editando['nome']]
+                                    with open(TABELA_NUTRICIONAL_FILE, "w", encoding="utf-8") as f:
+                                        json.dump(tabela_existente, f, ensure_ascii=False, indent=2)
+                                    st.success("✅ Tabela nutricional removida!")
+                                    st.rerun()
+                            except Exception as e:
+                                st.error(f"Erro ao remover tabela: {e}")
+            else:
+                st.session_state.editando_tabela_nutricional = False
+                
+                # Mostrar resumo se existirem dados
+                if dados_nutricionais_existentes:
+                    st.info(f"📊 **Tabela Nutricional Atual:**")
+                    st.write(f"• Calorias: {dados_nutricionais_existentes.get('calorias', 0)} kcal")
+                    st.write(f"• Proteínas: {dados_nutricionais_existentes.get('proteinas', 0)}g")
+                    st.write(f"• Carboidratos: {dados_nutricionais_existentes.get('carboidratos', 0)}g")
+                    if dados_nutricionais_existentes.get('alergenicos'):
+                        st.write(f"• Alérgenos: {', '.join(dados_nutricionais_existentes.get('alergenicos', []))}")
+                else:
+                    st.warning("⚠️ Este prato não possui tabela nutricional cadastrada.")
+            
             # =============== FORMULÁRIO PRINCIPAL DE EDIÇÃO ===============
             with st.form("editar_prato_form"):
                 col1, col2 = st.columns(2)
@@ -1169,6 +1174,7 @@ else:
                             st.session_state.ingredientes_para_remover = []
                             st.session_state.novo_ing_nome = ""
                             st.session_state.novo_ing_qtd = 1
+                            st.session_state.editando_tabela_nutricional = False
                             
                             st.success(f"✅ Prato '{nome_editado}' atualizado com sucesso!")
                             st.rerun()
@@ -1183,6 +1189,7 @@ else:
                         st.session_state.ingredientes_para_remover = []
                         st.session_state.novo_ing_nome = ""
                         st.session_state.novo_ing_qtd = 1
+                        st.session_state.editando_tabela_nutricional = False
                         st.rerun()
         
         else:
@@ -1242,6 +1249,70 @@ else:
                         for ing in ingredientes_selecionados:
                             st.write(f"- {ing['nome']} ({ing['quantidade']} {next((i['unidade'] for i in ingredientes if i['nome'] == ing['nome']), 'un')})")
                 
+                # =============== NOVA SEÇÃO: TABELA NUTRICIONAL ===============
+                st.markdown("---")
+                
+                # Checkbox para adicionar tabela nutricional
+                adicionar_tabela = st.checkbox(
+                    "📊 Adicionar Tabela Nutricional para este prato",
+                    value=st.session_state.get('adicionar_tabela_nutricional', False),
+                    key="chk_tabela_nutricional"
+                )
+                
+                # Inicializar variáveis de tabela nutricional
+                calorias = 0
+                proteinas = 0.0
+                carboidratos = 0.0
+                gorduras = 0.0
+                gorduras_saturadas = 0.0
+                fibra = 0.0
+                sodio = 0
+                descricao_nutricional = ""
+                alergenicos_selecionados = []
+                
+                if adicionar_tabela:
+                    st.session_state.adicionar_tabela_nutricional = True
+                    
+                    st.subheader("🍎 Informações Nutricionais")
+                    
+                    col_nut1, col_nut2 = st.columns(2)
+                    
+                    with col_nut1:
+                        calorias = st.number_input("Calorias (kcal)", min_value=0, value=0, step=10, key="calorias_input")
+                        proteinas = st.number_input("Proteínas (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="proteinas_input")
+                        carboidratos = st.number_input("Carboidratos (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="carboidratos_input")
+                        gorduras = st.number_input("Gorduras Totais (g)", min_value=0.0, value=0.0, step=1.0, format="%.1f", key="gorduras_input")
+                    
+                    with col_nut2:
+                        gorduras_saturadas = st.number_input("Gorduras Saturadas (g)", min_value=0.0, value=0.0, step=0.5, format="%.1f", key="gord_sat_input")
+                        fibra = st.number_input("Fibra Alimentar (g)", min_value=0.0, value=0.0, step=0.5, format="%.1f", key="fibra_input")
+                        sodio = st.number_input("Sódio (mg)", min_value=0, value=0, step=10, key="sodio_input")
+                    
+                    # Descrição e alérgenos
+                    descricao_nutricional = st.text_area(
+                        "Descrição Nutricional",
+                        placeholder="Descreva o prato e suas características nutricionais...",
+                        height=80,
+                        key="desc_nutricional_input"
+                    )
+                    
+                    # Alérgenos
+                    st.write("**Alérgenos:**")
+                    alergenicos_opcoes = [
+                        "Glúten", "Lactose", "Leite", "Ovos", "Soja", "Nozes",
+                        "Amendoim", "Peixes", "Crustáceos", "Moluscos", "Sésamo",
+                        "Sulfitos", "Aipo", "Mostarda"
+                    ]
+                    
+                    cols_alerg = st.columns(4)
+                    for i, alergenico in enumerate(alergenicos_opcoes):
+                        with cols_alerg[i % 4]:
+                            if st.checkbox(alergenico, key=f"alerg_{alergenico}"):
+                                alergenicos_selecionados.append(alergenico)
+                else:
+                    st.session_state.adicionar_tabela_nutricional = False
+                
+                # Botão de submit
                 submitted = st.form_submit_button("✅ Cadastrar Prato", type="primary")
                 
                 if submitted:
@@ -1283,8 +1354,43 @@ else:
                             with open(ESTOQUE_FILE, "w", encoding="utf-8") as f:
                                 json.dump(estoque_pratos, f, ensure_ascii=False, indent=2)
                             
+                            # =============== SALVAR TABELA NUTRICIONAL SE SOLICITADO E PREENCHIDA ===============
+                            if adicionar_tabela:
+                                # Verificar se pelo menos um campo nutricional foi preenchido
+                                campos_preenchidos = any([
+                                    calorias > 0,
+                                    proteinas > 0,
+                                    carboidratos > 0,
+                                    gorduras > 0,
+                                    gorduras_saturadas > 0,
+                                    fibra > 0,
+                                    sodio > 0,
+                                    descricao_nutricional.strip() != ""
+                                ])
+                                
+                                if campos_preenchidos or alergenicos_selecionados:
+                                    dados_nutricionais = {
+                                        "calorias": calorias,
+                                        "proteinas": proteinas,
+                                        "carboidratos": carboidratos,
+                                        "gorduras": gorduras,
+                                        "gorduras_saturadas": gorduras_saturadas,
+                                        "fibra": fibra,
+                                        "sodio": sodio,
+                                        "descricao": descricao_nutricional if descricao_nutricional.strip() else f"{nome} - {novo_prato.get('cat', 'prato')}",
+                                        "alergenicos": alergenicos_selecionados
+                                    }
+                                    
+                                    if salvar_informacoes_nutricionais(nome, dados_nutricionais):
+                                        st.success(f"✅ Tabela nutricional salva para '{nome}'")
+                                else:
+                                    st.warning("⚠️ Tabela nutricional não foi salva porque nenhum dado foi preenchido.")
+                            
                             st.success(f"🎉 Prato '{nome}' cadastrado com sucesso!")
                             st.balloons()
+                            
+                            # Limpar o estado
+                            st.session_state.adicionar_tabela_nutricional = False
             
             # Lista de pratos com ingredientes
             st.subheader("📋 Pratos Cadastrados")
@@ -1306,6 +1412,11 @@ else:
                             ingrediente_info = next((i for i in ingredientes if i['nome'] == ing['nome']), None)
                             if ingrediente_info:
                                 st.write(f"- {ing['nome']}: {ing['quantidade']} {ingrediente_info['unidade']}")
+                    
+                    # Verificar se tem tabela nutricional
+                    dados_nutricionais = obter_informacoes_nutricionais(prato['nome'])
+                    if dados_nutricionais:
+                        st.info(f"📊 Possui tabela nutricional: {dados_nutricionais.get('calorias', 0)} kcal")
                     
                     col_btn1, col_btn2 = st.columns(2)
                     with col_btn1:
@@ -1492,7 +1603,7 @@ else:
         with col4:
             st.metric("Ingredientes em Alerta", len(ingredientes_baixo))
         
-        # =============== CUSTO ESTIMADO POR PRATO - MELHORADO ===============
+        # =============== CUSTO ESTIMADO POR PRATO - v2===============
         st.subheader("💲 Análise de Custos e Lucros")
         
         # Opções de filtro
@@ -1604,7 +1715,7 @@ else:
                     with col_info1:
                         st.write("**Informações Financeiras:**")
                         
-                        # Métricas em colunas - também corrigidas
+                        # Métricas em colunas
                         col_met1, col_met2, col_met3 = st.columns(3)
                         with col_met1:
                             st.markdown(f"""
@@ -1711,80 +1822,6 @@ else:
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
-                    
-                    # Detalhes dos ingredientes (se solicitado)
-                    if mostrar_detalhes:
-                        st.write("**🔍 Detalhamento de Custos:**")
-                        
-                        # Encontrar o prato completo para ver ingredientes
-                        prato_completo = next((p for p in pratos if p['nome'] == dado['nome']), None)
-                        if prato_completo and prato_completo.get('ingredientes'):
-                            for ingrediente in prato_completo['ingredientes']:
-                                # Calcular custo deste ingrediente
-                                precos_ingredientes = {
-                                    "Pão de Hambúrguer": 1.50, "Pão Brioche": 2.00, "Carne Bovina 180g": 6.00,
-                                    "Queijo Cheddar": 1.50, "Queijo Mussarela": 1.20, "Bacon": 2.00,
-                                    "Alface": 0.50, "Tomate": 0.30, "Cebola Roxa": 0.20, "Molho Especial": 1.00,
-                                    "Maionese": 0.80, "Ketchup": 0.30, "Mostarda": 0.30, "Batata Palha": 1.50,
-                                    "Coca-Cola 2L": 8.00, "Guaraná 2L": 7.00
-                                }
-                                
-                                custo_ing = precos_ingredientes.get(ingrediente['nome'], 1.00) * ingrediente['quantidade']
-                                percentual_ing = (custo_ing / dado['custo'] * 100) if dado['custo'] > 0 else 0
-                                
-                                col_ing1, col_ing2, col_ing3 = st.columns([3, 2, 2])
-                                with col_ing1:
-                                    st.write(f"• {ingrediente['nome']} (x{ingrediente['quantidade']})")
-                                with col_ing2:
-                                    st.markdown(f"""
-                                    <div style="color: white; font-weight: 500;">R$ {custo_ing:.2f}</div>
-                                    """, unsafe_allow_html=True)
-                                with col_ing3:
-                                    st.markdown(f"""
-                                    <div style="margin-top: 5px;">
-                                        <div style="color: rgba(255,255,255,0.8); font-size: 0.8rem; margin-bottom: 3px;">{percentual_ing:.1f}% do custo</div>
-                                        <div style="background: rgba(255,255,255,0.1); border-radius: 5px; height: 8px;">
-                                            <div style="background: #54a0ff; width: {min(percentual_ing, 100)}%; height: 100%; border-radius: 5px;"></div>
-                                        </div>
-                                    </div>
-                                    """, unsafe_allow_html=True)
-            
-            # Gráfico de resumo (opcional)
-            st.divider()
-            if len(dados_pratos) > 1:
-                st.write("**📊 Comparativo entre Pratos:**")
-                
-                # Criar gráfico simples usando métricas side-by-side
-                num_pratos = min(5, len(dados_pratos))  # Mostrar até 5 pratos para não poluir
-                cols_grafico = st.columns(num_pratos)
-                
-                for i in range(num_pratos):
-                    with cols_grafico[i]:
-                        prato_info = dados_pratos[i]
-                        # Card compacto
-                        st.markdown(f"""
-                        <div style="
-                            background: rgba(255,255,255,0.08); 
-                            border-radius: 12px; 
-                            padding: 15px; 
-                            margin: 5px 0;
-                            border-left: 4px solid {'#1dd1a1' if prato_info['margem'] > 30 else '#feca57' if prato_info['margem'] > 15 else '#ff6b6b'};
-                        ">
-                            <div style="font-weight: bold; font-size: 0.9rem; color: white; margin-bottom: 8px;">
-                                {prato_info['nome'][:15]}{'...' if len(prato_info['nome']) > 15 else ''}
-                            </div>
-                            <div style="color: #54a0ff; font-size: 1.1rem; font-weight: bold;">
-                                R$ {prato_info['preco']:.2f}
-                            </div>
-                            <div style="color: #1dd1a1; font-size: 0.9rem; margin-top: 5px;">
-                                +R$ {prato_info['lucro']:.2f}
-                            </div>
-                            <div style="color: {'#1dd1a1' if prato_info['margem'] > 30 else '#feca57' if prato_info['margem'] > 15 else '#ff6b6b'}; 
-                                 font-size: 0.8rem; margin-top: 3px;">
-                                {prato_info['margem']:.1f}%
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
 
 # =============== BOTÕES GLOBAIS ===============
 st.markdown("---")
