@@ -3,133 +3,152 @@
     "nome": "Pão de Hambúrguer",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 100,
-    "minimo": 20
+    "estoque": 40,
+    "minimo": 8,
+    "preco_custo": 3.0
   },
   {
     "nome": "Pão Brioche",
     "categoria": "paes",
     "unidade": "unidade",
-    "estoque": 80,
-    "minimo": 15
+    "estoque": 30,
+    "minimo": 6,
+    "preco_custo": 3.0
   },
   {
     "nome": "Carne Bovina 180g",
     "categoria": "carnes",
     "unidade": "unidade",
     "estoque": 50,
-    "minimo": 10
+    "minimo": 10,
+    "preco_custo": 1.0
   },
   {
     "nome": "Queijo Cheddar",
     "categoria": "queijos",
     "unidade": "fatia",
     "estoque": 200,
-    "minimo": 30
+    "minimo": 30,
+    "preco_custo": 1.0
   },
   {
     "nome": "Queijo Mussarela",
     "categoria": "queijos",
     "unidade": "fatia",
     "estoque": 150,
-    "minimo": 25
+    "minimo": 25,
+    "preco_custo": 1.0
   },
   {
     "nome": "Bacon",
     "categoria": "complementos",
     "unidade": "fatia",
     "estoque": 120,
-    "minimo": 20
+    "minimo": 20,
+    "preco_custo": 1.0
   },
   {
     "nome": "Alface",
     "categoria": "saladas",
     "unidade": "folha",
     "estoque": 50,
-    "minimo": 10
+    "minimo": 10,
+    "preco_custo": 1.0
   },
   {
     "nome": "Tomate",
     "categoria": "saladas",
     "unidade": "fatia",
     "estoque": 100,
-    "minimo": 15
+    "minimo": 15,
+    "preco_custo": 1.0
   },
   {
     "nome": "Cebola Roxa",
     "categoria": "saladas",
     "unidade": "fatia",
     "estoque": 80,
-    "minimo": 10
+    "minimo": 10,
+    "preco_custo": 1.0
   },
   {
     "nome": "Molho Especial",
     "categoria": "molhos",
     "unidade": "porção",
     "estoque": 50,
-    "minimo": 8
+    "minimo": 8,
+    "preco_custo": 1.0
   },
   {
     "nome": "Refrigerante Genérico",
     "categoria": "bebidas",
     "unidade": "lata",
     "estoque": 200,
-    "minimo": 30
+    "minimo": 30,
+    "preco_custo": 1.0
   },
   {
     "nome": "Suco Natural",
     "categoria": "bebidas",
     "unidade": "copo",
     "estoque": 80,
-    "minimo": 15
+    "minimo": 15,
+    "preco_custo": 1.0
   },
   {
     "nome": "Batata para Fritar",
     "categoria": "acompanhamentos",
     "unidade": "porção",
     "estoque": 40,
-    "minimo": 8
+    "minimo": 8,
+    "preco_custo": 1.0
   },
   {
     "nome": "Cebola para Anéis",
     "categoria": "acompanhamentos",
     "unidade": "porção",
     "estoque": 30,
-    "minimo": 6
+    "minimo": 6,
+    "preco_custo": 1.0
   },
   {
     "nome": "Sorvete de Baunilha",
     "categoria": "sobremesas",
     "unidade": "bola",
     "estoque": 60,
-    "minimo": 12
+    "minimo": 12,
+    "preco_custo": 1.0
   },
   {
     "nome": "Leite",
     "categoria": "sobremesas",
     "unidade": "ml",
     "estoque": 10000,
-    "minimo": 2000
+    "minimo": 2000,
+    "preco_custo": 1.0
   },
   {
     "nome": "Brownie",
     "categoria": "sobremesas",
     "unidade": "unidade",
     "estoque": 25,
-    "minimo": 5
+    "minimo": 5,
+    "preco_custo": 1.0
   },
   {
     "nome": "Calda de Chocolate",
     "categoria": "sobremesas",
     "unidade": "porção",
     "estoque": 25,
-    "minimo": 5
+    "minimo": 5,
+    "preco_custo": 1.0
   },
   {
     "nome": "Chantilly",
     "categoria": "sobremesas",
     "unidade": "porção",
     "estoque": 30,
-    "minimo": 6
+    "minimo": 6,
+    "preco_custo": 1.0
   }
 ]

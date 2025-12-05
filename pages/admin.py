@@ -156,52 +156,77 @@ def verificar_disponibilidade_prato(prato, ingredientes):
     return len(faltantes) == 0, faltantes
 
 def calcular_custo_prato(prato, ingredientes):
-    """Calcula custo estimado baseado nos ingredientes (valores fictícios)"""
-    precos_ingredientes = {
-        "Pão de Hambúrguer": 1.50, "Pão Brioche": 2.00, "Carne Bovina 180g": 6.00,
-        "Queijo Cheddar": 1.50, "Queijo Mussarela": 1.20, "Bacon": 2.00,
-        "Alface": 0.50, "Tomate": 0.30, "Cebola Roxa": 0.20, "Molho Especial": 1.00,
-        "Maionese": 0.80, "Ketchup": 0.30, "Mostarda": 0.30, "Batata Palha": 1.50,
-        "Coca-Cola 2L": 8.00, "Guaraná 2L": 7.00
-    }
-    
+    """Calcula custo estimado baseado nos preços reais dos ingredientes"""
     custo_total = 0
+    
+    # Criar dicionário com preços dos ingredientes
+    precos_ingredientes = {}
+    for ing in ingredientes:
+        precos_ingredientes[ing['nome']] = ing.get('preco_custo', 1.00)
+    
+    # Calcular custo para cada ingrediente do prato
     for ing_prato in prato.get('ingredientes', []):
         preco_unitario = precos_ingredientes.get(ing_prato['nome'], 1.00)
         custo_total += preco_unitario * ing_prato['quantidade']
     
-    return custo_total
+    return round(custo_total, 2)
 
 # =============== FUNÇÕES DE DADOS ===============
+def criar_ingredientes_iniciais():
+    ingredientes_iniciais = [
+        {"nome": "Pão de Hambúrguer", "categoria": "paes", "unidade": "unidade", 
+         "estoque": 100, "minimo": 20, "preco_custo": 1.50},
+        {"nome": "Pão Brioche", "categoria": "paes", "unidade": "unidade", 
+         "estoque": 80, "minimo": 15, "preco_custo": 2.00},
+        {"nome": "Carne Bovina 180g", "categoria": "carnes", "unidade": "unidade", 
+         "estoque": 50, "minimo": 10, "preco_custo": 6.00},
+        {"nome": "Queijo Cheddar", "categoria": "queijos", "unidade": "fatia", 
+         "estoque": 200, "minimo": 30, "preco_custo": 1.50},
+        {"nome": "Queijo Mussarela", "categoria": "queijos", "unidade": "fatia", 
+         "estoque": 150, "minimo": 25, "preco_custo": 1.20},
+        {"nome": "Bacon", "categoria": "complementos", "unidade": "fatia", 
+         "estoque": 120, "minimo": 20, "preco_custo": 2.00},
+        {"nome": "Alface", "categoria": "saladas", "unidade": "porção", 
+         "estoque": 30, "minimo": 5, "preco_custo": 0.50},
+        {"nome": "Tomate", "categoria": "saladas", "unidade": "fatia", 
+         "estoque": 100, "minimo": 15, "preco_custo": 0.30},
+        {"nome": "Cebola Roxa", "categoria": "saladas", "unidade": "fatia", 
+         "estoque": 80, "minimo": 10, "preco_custo": 0.20},
+        {"nome": "Molho Especial", "categoria": "molhos", "unidade": "porção", 
+         "estoque": 50, "minimo": 8, "preco_custo": 1.00},
+        {"nome": "Maionese", "categoria": "molhos", "unidade": "porção", 
+         "estoque": 40, "minimo": 6, "preco_custo": 0.80},
+        {"nome": "Ketchup", "categoria": "molhos", "unidade": "sache", 
+         "estoque": 200, "minimo": 30, "preco_custo": 0.30},
+        {"nome": "Mostarda", "categoria": "molhos", "unidade": "sache", 
+         "estoque": 180, "minimo": 25, "preco_custo": 0.30},
+        {"nome": "Batata Palha", "categoria": "acompanhamentos", "unidade": "porção", 
+         "estoque": 25, "minimo": 5, "preco_custo": 1.50},
+        {"nome": "Coca-Cola 2L", "categoria": "bebidas", "unidade": "unidade", 
+         "estoque": 30, "minimo": 6, "preco_custo": 8.00},
+        {"nome": "Guaraná 2L", "categoria": "bebidas", "unidade": "unidade", 
+         "estoque": 25, "minimo": 5, "preco_custo": 7.00},
+    ]
+    
+    # Salvar no arquivo
+    with open(INGREDIENTES_FILE, "w", encoding="utf-8") as f:
+        json.dump(ingredientes_iniciais, f, ensure_ascii=False, indent=2)
+    return ingredientes_iniciais
+
 def carregar_ingredientes():
     if os.path.exists(INGREDIENTES_FILE):
         try:
             with open(INGREDIENTES_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                ingredientes = json.load(f)
+                # Garantir que todos os ingredientes tenham preco_custo
+                for ing in ingredientes:
+                    if 'preco_custo' not in ing:
+                        ing['preco_custo'] = 1.00  # Valor padrão
+                return ingredientes
         except:
-            return []
+            return criar_ingredientes_iniciais()
     else:
-        ingredientes_iniciais = [
-            {"nome": "Pão de Hambúrguer", "categoria": "paes", "unidade": "unidade", "estoque": 100, "minimo": 20},
-            {"nome": "Pão Brioche", "categoria": "paes", "unidade": "unidade", "estoque": 80, "minimo": 15},
-            {"nome": "Carne Bovina 180g", "categoria": "carnes", "unidade": "unidade", "estoque": 50, "minimo": 10},
-            {"nome": "Queijo Cheddar", "categoria": "queijos", "unidade": "fatia", "estoque": 200, "minimo": 30},
-            {"nome": "Queijo Mussarela", "categoria": "queijos", "unidade": "fatia", "estoque": 150, "minimo": 25},
-            {"nome": "Bacon", "categoria": "complementos", "unidade": "fatia", "estoque": 120, "minimo": 20},
-            {"nome": "Alface", "categoria": "saladas", "unidade": "porção", "estoque": 30, "minimo": 5},
-            {"nome": "Tomate", "categoria": "saladas", "unidade": "fatia", "estoque": 100, "minimo": 15},
-            {"nome": "Cebola Roxa", "categoria": "saladas", "unidade": "fatia", "estoque": 80, "minimo": 10},
-            {"nome": "Molho Especial", "categoria": "molhos", "unidade": "porção", "estoque": 50, "minimo": 8},
-            {"nome": "Maionese", "categoria": "molhos", "unidade": "porção", "estoque": 40, "minimo": 6},
-            {"nome": "Ketchup", "categoria": "molhos", "unidade": "sache", "estoque": 200, "minimo": 30},
-            {"nome": "Mostarda", "categoria": "molhos", "unidade": "sache", "estoque": 180, "minimo": 25},
-            {"nome": "Batata Palha", "categoria": "acompanhamentos", "unidade": "porção", "estoque": 25, "minimo": 5},
-            {"nome": "Coca-Cola 2L", "categoria": "bebidas", "unidade": "unidade", "estoque": 30, "minimo": 6},
-            {"nome": "Guaraná 2L", "categoria": "bebidas", "unidade": "unidade", "estoque": 25, "minimo": 5},
-        ]
-        with open(INGREDIENTES_FILE, "w", encoding="utf-8") as f:
-            json.dump(ingredientes_iniciais, f, ensure_ascii=False, indent=2)
-        return ingredientes_iniciais
+        return criar_ingredientes_iniciais()
 
 def carregar_estoque():
     if os.path.exists(ESTOQUE_FILE):
@@ -667,7 +692,7 @@ else:
         
         # Formulário para novo ingrediente
         with st.form("novo_ingrediente"):
-            col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+            col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 1])
             with col1:
                 novo_nome = st.text_input("Nome do Ingrediente", placeholder="Ex: Pão Brioche")
             with col2:
@@ -677,6 +702,8 @@ else:
                 nova_unidade = st.selectbox("Unidade", ["unidade", "kg", "litro", "fatia", "porção", "sache", "gramas"])
             with col4:
                 novo_estoque = st.number_input("Estoque Inicial", min_value=0, value=10)
+            with col5:
+                novo_preco_custo = st.number_input("Custo Unitário R$", min_value=0.0, value=1.00, step=0.1, format="%.2f")
             
             if st.form_submit_button("➕ Adicionar Ingrediente", type="secondary"):
                 if novo_nome:
@@ -689,7 +716,8 @@ else:
                             "categoria": nova_categoria,
                             "unidade": nova_unidade,
                             "estoque": novo_estoque,
-                            "minimo": 5
+                            "minimo": 5,
+                            "preco_custo": novo_preco_custo
                         }
                         ingredientes.append(novo_ingrediente)
                         with open(INGREDIENTES_FILE, "w", encoding="utf-8") as f:
@@ -706,7 +734,7 @@ else:
             ingredientes_cat = [ing for ing in ingredientes if ing['categoria'] == categoria]
             
             for i, ingrediente in enumerate(ingredientes_cat):
-                col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 1])
+                col1, col2, col3, col4, col5, col6 = st.columns([3, 1, 1, 1, 1, 1])
                 
                 with col1:
                     st.write(f"**{ingrediente['nome']}**")
@@ -731,15 +759,27 @@ else:
                     )
                 
                 with col4:
+                    novo_preco = st.number_input(
+                        "Custo R$",
+                        min_value=0.0,
+                        value=float(ingrediente.get('preco_custo', 1.00)),
+                        step=0.1,
+                        format="%.2f",
+                        key=f"custo_{ingrediente['nome']}",
+                        label_visibility="collapsed"
+                    )
+                
+                with col5:
                     if st.button("💾", key=f"save_ing_{ingrediente['nome']}"):
                         ingredientes[i]['estoque'] = novo_estoque
                         ingredientes[i]['minimo'] = novo_minimo
+                        ingredientes[i]['preco_custo'] = novo_preco
                         with open(INGREDIENTES_FILE, "w", encoding="utf-8") as f:
                             json.dump(ingredientes, f, ensure_ascii=False, indent=2)
                         st.success("✅ Atualizado!")
                         st.rerun()
                 
-                with col5:
+                with col6:
                     if st.button("🗑️", key=f"del_ing_{ingrediente['nome']}"):
                         # Verifica se o ingrediente está sendo usado em algum prato
                         usado_em = []
@@ -758,7 +798,7 @@ else:
                 # Barra de estoque
                 percentual = min(novo_estoque / novo_minimo * 100, 100) if novo_minimo > 0 else 0
                 cor = "red" if novo_estoque <= novo_minimo else "green"
-                st.progress(percentual/100, text=f"Estoque: {novo_estoque} {ingrediente['unidade']} / Mínimo: {novo_minimo}")
+                st.progress(percentual/100, text=f"Estoque: {novo_estoque} {ingrediente['unidade']} | Custo: R$ {novo_preco:.2f} | Mínimo: {novo_minimo}")
             
             st.divider()
 
@@ -1505,7 +1545,40 @@ else:
         with col4:
             st.metric("Ingredientes em Alerta", len(ingredientes_baixo))
         
-        # =============== CUSTO ESTIMADO POR PRATO - v2===============
+        # Botão para exportar relatório de custos
+        col_exp1, col_exp2, col_exp3 = st.columns(3)
+        with col_exp2:
+            if st.button("📥 Exportar Relatório de Custos", use_container_width=True):
+                # Criar relatório
+                relatorio = {
+                    "data_geracao": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+                    "total_pratos": len(pratos),
+                    "total_ingredientes": len(ingredientes),
+                    "analise_pratos": []
+                }
+                
+                for prato in pratos:
+                    custo = calcular_custo_prato(prato, ingredientes)
+                    lucro = prato['preco'] - custo
+                    margem = (lucro / prato['preco'] * 100) if prato['preco'] > 0 else 0
+                    
+                    relatorio["analise_pratos"].append({
+                        "nome": prato['nome'],
+                        "categoria": prato['cat'],
+                        "preco_venda": prato['preco'],
+                        "custo_producao": custo,
+                        "lucro_bruto": lucro,
+                        "margem_percentual": margem
+                    })
+                
+                # Salvar relatório em JSON
+                relatorio_file = os.path.join(BASE_DIR, f"relatorio_custos_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json")
+                with open(relatorio_file, "w", encoding="utf-8") as f:
+                    json.dump(relatorio, f, ensure_ascii=False, indent=2)
+                
+                st.success(f"✅ Relatório exportado: {os.path.basename(relatorio_file)}")
+        
+        # =============== ANÁLISE DE CUSTOS E LUCROS ===============
         st.subheader("💲 Análise de Custos e Lucros")
         
         # Opções de filtro
@@ -1570,7 +1643,7 @@ else:
             total_lucro = sum(p['lucro'] for p in dados_pratos)
             margem_media = (total_lucro / total_preco * 100) if total_preco > 0 else 0
             
-            # CORREÇÃO: Usando HTML para mostrar números completos
+            # Usando HTML para mostrar números completos
             col_res1, col_res2, col_res3, col_res4 = st.columns(4)
             
             with col_res1:
@@ -1724,6 +1797,54 @@ else:
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
+                    
+                    # Detalhamento dos custos por ingrediente
+                    if mostrar_detalhes:
+                        st.markdown("**🧾 Detalhamento de custos por ingrediente:**")
+                        
+                        # Encontrar o prato correspondente
+                        prato_detalhe = next((p for p in pratos_filtrados if p['nome'] == dado['nome']), None)
+                        if prato_detalhe:
+                            # Tabela de ingredientes e custos
+                            custos_ingredientes = []
+                            for ing_prato in prato_detalhe.get('ingredientes', []):
+                                # Encontrar o ingrediente
+                                ingrediente_info = next((i for i in ingredientes if i['nome'] == ing_prato['nome']), None)
+                                if ingrediente_info:
+                                    custo_unitario = ingrediente_info.get('preco_custo', 1.00)
+                                    custo_total = custo_unitario * ing_prato['quantidade']
+                                    custos_ingredientes.append({
+                                        'ingrediente': ing_prato['nome'],
+                                        'quantidade': ing_prato['quantidade'],
+                                        'unidade': ingrediente_info['unidade'],
+                                        'custo_unitario': custo_unitario,
+                                        'custo_total': custo_total
+                                    })
+                            
+                            # Mostrar tabela
+                            for custo in custos_ingredientes:
+                                col_det1, col_det2, col_det3, col_det4, col_det5 = st.columns([3, 1, 1, 1, 1])
+                                with col_det1:
+                                    st.write(f"• {custo['ingrediente']}")
+                                with col_det2:
+                                    st.write(f"{custo['quantidade']}")
+                                with col_det3:
+                                    st.write(f"{custo['unidade']}")
+                                with col_det4:
+                                    st.write(f"R$ {custo['custo_unitario']:.2f}")
+                                with col_det5:
+                                    st.write(f"R$ {custo['custo_total']:.2f}")
+                            
+                            # Total dos ingredientes
+                            total_ingredientes = sum(c['custo_total'] for c in custos_ingredientes)
+                            st.write(f"**Total ingredientes: R$ {total_ingredientes:.2f}**")
+                            
+                            # Se houver outros custos (mão de obra, embalagem, etc.)
+                            outros_custos = dado['custo'] - total_ingredientes
+                            if outros_custos > 0:
+                                st.write(f"**Outros custos (mão de obra, embalagem): R$ {outros_custos:.2f}**")
+                            
+                            st.divider()
 
 # =============== BOTÕES GLOBAIS ===============
 st.markdown("---")
